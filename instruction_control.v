@@ -1,59 +1,78 @@
 module instruction_control (
     input [31:0] instruction,
-    output reg [6:0] opcode,
-    output reg [4:0] rs1,
-    output reg [4:0] rs2,
-    output reg [4:0] rd,
-    output reg [31:0] imm,
-    output reg [2:0] func3,
-    output reg [6:0] func7
+    output reg Branch,
+    output reg MemRead,
+    output reg MemToReg,
+    output reg [3:0] ALUop,
+    output reg MemWrite,
+    output reg ALUSrc,
+    output reg RegWrite
 );
-assign opcode=instruction[6:0];
+wire [2:0]func3;
+wire [6:0]func7;
+wire [6:0]opcode;
+assign func3 = instruction[14:12];
+assign func7 = instruction[31:25];
+assign opcode = instruction[6:0];
+
 always @(*) begin
-    rd = 5'b0;
-    func3 = 3'b0;
-    rs1 = 5'b0;
-    rs2 = 5'b0;
-    func7 = 7'b0;
-    imm = 32'b0;
-    case (opcode)
-        7'b0110011:begin      //R-type
-            rs1=instruction[19:15];
-            rs2=instruction[24:20];
-            rd=instruction[11:7];
-            func3=instruction[14:12];
-            func7=instruction[31:25];
+    Branch=1'b0;
+    MemRead=1'b0;
+    MemToReg=1'b0;
+    ALUop=4'b0000;
+    MemWrite=1'b0;
+    ALUSrc=1'b0;
+    RegWrite=1'b0;
+    case(opcode)
+        //R-type
+        7'b0110011:begin
+            RegWrite=1'1;
+            case({func3,func7})
+                10'b000_0000000:begin
+                    ALUop=4'b0000;        //add
+                end
+                10'b000_0100000:begin
+                    ALUop=4'b0001;        //sub
+                end
+                10'b100_0000000:begin
+                    ALUop=4'b0010;        //xor
+                end
+                10'b110_0000000:begin
+                    ALUop=4'b0011;        //or
+                end
+                10'b111_0000000:begin
+                    ALUop=4'b0100;        //and
+                end
+            endcase
         end
-        7'b0010011:begin    //I-type-1
-            rs1=instruction[19:15];
-            rd=instruction[11:7];
-            imm={{20{instruction[31]}},instruction[31:20]};   //imm符号扩展
-            func3=instruction[14:12];
+        //I-type-1
+        7'b0010011:begin
+            RegWrite=1'b1;
+            ALUSrc=1'b1;
+            case(func3)
+                3'b000:begin
+                    ALUop=4'b0000;     //addi
+                end
+                3'b100:begin
+                    ALUop=4'b0001;     //xori
+                end
+                3'b110:begin
+                    ALUop=4'b0010;     //ori
+                end
+                3'b111:begin
+                    ALUop=4'b0011;     //andi
+                end
+            endcase
         end
-        7'b0000011:begin    //I-type-2
-            rs1=instruction[19:15];
-            rd=instruction[11:7];
-            imm={{20{instruction[31]}},instruction[31:20]};   //imm符号扩展
-            func3=instruction[14:12];        
+        //I-type-2-load
+        7'b0000011:begin
+            ALUSrc=1'b1;
+            MemRead=1'b1;
+            MemToReg=1'b1;
         end
-        7'b0100011:begin   //S-type
-            rs1=instruction[19:15];
-            rs2=instruction[24:20];
-            imm={{20{instruction[31]}},instruction[31:25],instruction[11:7]};
-            func3=instruction[14:12];
-        end 
-        7'b1100011:begin  //B-type
-            rs1=instruction[19:15];
-            rs2=instruction[24:20];
-            imm={{19{instruction[31]}},instruction[31],instruction[7],instruction[30:25],instruction[11:8],1'b0};
-            func3=instruction[14:12];
-        end
-        7'b1101111:begin  //J-type
-            rd=instruction[11:7];
-            imm={{11{instruction[31]}},instruction[31],instruction[19:12],instruction[20],instruction[30:21],1'b0};
-        end
-        default: 
+        
     endcase
 end
+
     
 endmodule
