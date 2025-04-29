@@ -1,12 +1,23 @@
 module instruction_control (
     input [31:0] instruction,
+    input [21:0] Alu_resultHigh,
+    output reg nBranch,
     output reg Branch,
+    output reg branch_lt,
+    output reg branch_ge,
+    output reg branch_ltu,
+    output reg branch_geu,
+    output reg jal,
+    output reg jalr,
     output reg MemRead,
-    output reg MemToReg,
+    output reg MemorIOToReg,
     output reg [3:0] ALUop,
     output reg MemWrite,
     output reg ALUSrc,
-    output reg RegWrite
+    output reg RegWrite,
+    output reg sftmd,
+    output reg IORead,
+    output reg IOWrite
 );
 wire [2:0]func3;
 wire [6:0]func7;
@@ -15,14 +26,25 @@ assign func3 = instruction[14:12];
 assign func7 = instruction[31:25];
 assign opcode = instruction[6:0];
 
+wire is_IO_address = (Alu_resultHigh == 22'h3FFFFF); // 0xFFFFFC00
+wire is_RAM_address = (Alu_resultHigh < 22'h000040); // 0x00000000-0x00010000
+
 always @(*) begin
+    nBranch=1'b0;
     Branch=1'b0;
+    branch_ge=1'b0;
+    branch_geu=1'b0;
+    branch_lt=1'b0;
+    branch_ltu=1'b0;
     MemRead=1'b0;
-    MemToReg=1'b0;
+    MemorIOToReg=1'b0;
     ALUop=4'b0000;
     MemWrite=1'b0;
     ALUSrc=1'b0;
     RegWrite=1'b0;
+    sftmd=1'b0;
+    IORead=1'b0;
+    IOWrite=1'b0;
     case(opcode)
         //R-type
         7'b0110011:begin
@@ -43,6 +65,18 @@ always @(*) begin
                 10'b111_0000000:begin
                     ALUop=4'b0100;        //and
                 end
+                10'b001_0000000:begin
+                    ALUop=4'b0101;        //sll
+                    sftmd=1'b1;
+                end
+                10'b101_0000000:begin
+                    ALUop=4'b0110;        //srl
+                    sftmd=1'b1;
+                end
+                10'b101_0100000:begin
+                    ALUop=4'b0111;        //sra
+                    sftmd=1'b1;
+                end
             endcase
         end
         //I-type-1
@@ -62,15 +96,74 @@ always @(*) begin
                 3'b111:begin
                     ALUop=4'b0011;     //andi
                 end
+                3'b001:begin
+                    ALUop=4'b0100;     //slli
+                    sftmd=1'b1;
+                end
+                3'b101:begin
+                    if (instruction[31:25]==7'b010_0000)begin
+                        ALUop=4'b0101;     //srai
+                        sftmd=1'b1;
+                    end else begin
+                        ALUop=4'b0110;     //srli
+                        sftmd=1'b1;   
+                    end
+                end
             endcase
         end
         //I-type-2-load
         7'b0000011:begin
             ALUSrc=1'b1;
-            MemRead=1'b1;
-            MemToReg=1'b1;
+            MemorIOToReg=1'b1;
+            if (is_IO_address) begin
+                IORead=1'b1;
+            end else begin
+                MemRead=1'b1;
+            end
         end
-        
+        //store
+        7'b0100011:begin
+            ALUSrc=1'b1;
+            if (is_IO_address) begin
+                IOWrite=1'b1;
+            end else begin
+                MemWrite=1'b1;
+            end
+        end
+        //branch
+        7'b1100011:begin
+            case(func3)
+                3'b000:begin
+                    Branch=1'b1;
+                end
+                3'b001:begin
+                    nBranch=1'b1;
+                end
+                3'b100:begin
+                    branch_lt=1'b1;
+                end
+                3'b101:begin
+                    branch_ge=1'b1;
+                end
+                3'b110:begin
+                    branch_ltu=1'b1;
+                end
+                3'b111:begin
+                    branch_geu=1'b1;
+                end
+            endcase
+        end
+        //jal
+        7'b1101111:begin
+            jal=1'b1;
+            RegWrite = 1'b1;
+        end
+        //jalr
+        7'b1100111:begin
+            jalr=1'b1;
+            RegWrite=1'b1;
+            ALUSrc=1'b1;
+        end
     endcase
 end
 
