@@ -115,6 +115,7 @@ always @(*) begin
         7'b0000011:begin
             ALUSrc=1'b1;
             MemorIOToReg=1'b1;
+            ALUop=4'b0000;
             if (is_IO_address) begin
                 IORead=1'b1;
             end else begin
@@ -124,6 +125,7 @@ always @(*) begin
         //store
         7'b0100011:begin
             ALUSrc=1'b1;
+            ALUop=4'b0000;
             if (is_IO_address) begin
                 IOWrite=1'b1;
             end else begin

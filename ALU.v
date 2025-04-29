@@ -30,9 +30,6 @@ always @(*) begin
         end
         13'b0001_0_0_0_0_0_0_0_0_0:begin        //sub
             Alu_result=read_data_1-read_data_2;
-            if (Alu_result=={32{1'b0}})begin
-                zero=1'b1;
-            end
         end
         13'b0010_0_0_0_0_0_0_0_0_0:begin        //xor
             Alu_result=read_data_1^read_data_2;
@@ -52,8 +49,61 @@ always @(*) begin
         13'b0111_0_1_0_0_0_0_0_0_0:begin        //sra
             Alu_result = $signed(read_data_1) >>> read_data_2;
         end
-        
+        13'b0000_1_0_0_0_0_0_0_0_1:begin        //addi  load  store
+            Alu_result=read_data_1+imm32;
+        end
+        13'b0001_1_0_0_0_0_0_0_0_1:begin        //xori
+            Alu_result=read_data_1^imm32;
+        end
+        13'b0010_1_0_0_0_0_0_0_0_1:begin        //ori
+            Alu_result=read_data_1|imm32;
+        end
+        13'b0011_1_0_0_0_0_0_0_0_1:begin        //andi
+            Alu_result=read_data_1&imm32;
+        end
+        13'b0100_1_1_0_0_0_0_0_0_1:begin        //slli
+            Alu_result=read_data_1<<imm32[4:0];
+        end
+        13'b0101_1_1_0_0_0_0_0_0_1:begin        //srai
+            Alu_result=$signed(read_data_1) >>> imm32;
+        end
+        13'b0110_1_1_0_0_0_0_0_0_1:begin        //srli
+            Alu_result=read_data_1>>imm32;
+        end
+        13'b0000_0_0_1_0_0_0_0_0_0:begin        //beq
+            if (read_data_1==read_data_2) begin
+                branch_result=1'b1;
+            end
+        end
+        13'b0000_0_0_0_1_0_0_0_0_0:begin       //bnq
+            if (read_data_1!=read_data_2) begin
+                branch_result=1'b1;
+            end
+        end
+        13'b0000_0_0_0_0_1_0_0_0_0:begin       //blt
+            if ($signed(read_data_1)<$signed(read_data_2)) begin
+                branch_result=1'b1;
+            end            
+        end
+        13'b0000_0_0_0_0_0_1_0_0_0:begin       //bge
+            if ($signed(read_data_1)>=$signed(read_data_2)) begin
+                branch_result=1'b1;
+            end               
+        end
+        13'b0000_0_0_0_0_0_0_1_0_0:begin       //bltu
+            if (read_data_1<read_data_2) begin
+                branch_result=1'b1;
+            end
+        end
+        13'b0000_0_0_0_0_0_0_0_1_0:begin       //bgeu
+            if (read_data_1>=read_data_2) begin
+                branch_result=1'b1;
+            end
+        end
     endcase
+    if (Alu_result=={32{1'b0}})begin
+        zero=1'b1;
+    end
 end
     
 endmodule
