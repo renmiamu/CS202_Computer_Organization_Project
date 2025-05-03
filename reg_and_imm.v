@@ -53,24 +53,24 @@ always @(posedge clk ) begin
         registers[29]<={32{1'b0}};
         registers[30]<={32{1'b0}};
         registers[31]<={32{1'b0}};
-    end else if (regWrite==1'b1)begin
+    end else if (RegWrite==1'b1)begin
         if (rd!=5'b00000) begin
-            registers[rd]<=writeData;
+            registers[rd]<=write_data;
         end
     end
 end
 
 always @(*) begin
     if (rs1==5'b00000) begin
-        rs1Data={32{1'b0}};
+        read_data_1={32{1'b0}};
     end else begin
-        rs1Data=registers[rs1];
+        read_data_1=registers[rs1];
     end
 
     if (rs2==5'b00000) begin
-        rs2Data={32{1'b0}};
+        read_data_2={32{1'b0}};
     end else begin
-        rs2Data=registers[rs2];
+        read_data_2=registers[rs2];
     end
 
     case (opcode)
@@ -91,7 +91,7 @@ always @(*) begin
             imm32={{20{inst[31]}},inst[31:25],inst[11:7]};
         end
         //b
-        7'b 1100011:begin
+        7'b1100011:begin
             imm32={{19{inst[31]}},inst[31],inst[7],inst[30:25],inst[11:8],1'b0};
         end
         7'b1101111:begin

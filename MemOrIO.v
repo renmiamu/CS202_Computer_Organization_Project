@@ -11,7 +11,7 @@ module MemOrIO (
     input[31:0] r_rdata, // data read from Decoder(register file)
     output reg[31:0] write_data, // data to memory or I/O（m_wdata, io_wdata）
     output LEDCtrl, // LED Chip Select
-    output SwitchCtrl, // Switch Chip Select
+    output SwitchCtrl // Switch Chip Select
 );
 assign addr_out=addr_in;
 always @(*) begin
