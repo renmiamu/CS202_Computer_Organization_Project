@@ -1,6 +1,6 @@
 module swtich (
     input clk,
-    input rst,
+    input rst
     
 );
     

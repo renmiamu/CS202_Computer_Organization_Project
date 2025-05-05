@@ -10,20 +10,22 @@ module ALU (
     input Branch_geu,
     input [31:0] read_data_1,
     input [31:0] read_data_2,
-    input imm32,
+    input [31:0] imm32,
     output reg [31:0] Alu_result,
     output reg zero,
     output reg branch_result
 );
 
-wire is_imm = (ALUSrc=1'b1);
+wire is_imm;
+assign is_imm = (ALUSrc == 1'b1);
+
 wire input_2;
 
 always @(*) begin
     zero=1'b0;
     Alu_result={32{1'b0}};
     branch_result=1'b0;
-    //总共13位
+    //鎬诲叡13浣?
     case({ALUop,ALUSrc,sftmd,Branch,nBranch,Branch_lt,Branch_ge,Branch_ltu,Branch_geu,is_imm})
         13'b0000_0_0_0_0_0_0_0_0_0:begin        //add
             Alu_result=read_data_1+read_data_2;

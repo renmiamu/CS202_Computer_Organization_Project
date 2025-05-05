@@ -48,7 +48,7 @@ always @(*) begin
     case(opcode)
         //R-type
         7'b0110011:begin
-            RegWrite=1'1;
+            RegWrite=1'b1;
             case({func3,func7})
                 10'b000_0000000:begin
                     ALUop=4'b0000;        //add
