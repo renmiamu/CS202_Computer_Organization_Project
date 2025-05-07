@@ -1,4 +1,4 @@
-module data_to_seg (
+module tub_control (
     input [3:0] data,
     output reg [7:0] light_segment
 );
