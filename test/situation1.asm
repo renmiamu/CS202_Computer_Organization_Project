@@ -1,17 +1,20 @@
 .text
 .globl _start
 _start:
-    li s11, 0x10010000      # s11 = base address of memory-mapped IO
-    li sp, 0x10011000       # initialize stack pointer
-    li t6, 0                # t6 = 0, used for comparisons
-    li t5, -1               # t5 = -1, used for other comparisons
-    li a4, -1
-    sw a4, 8(s11)           # turn off LED initially
+    li sp, 0x10011000         # Stack pointer
+    li t6, 0                  # Zero for comparison
+    li t5, -1                 # -1 for tests
+    li a4, -1                 # a4 = 0xFFFFFFFF
+    li s11, 0xfffffff00        # For LED/Output use
+    sw a4, 8(s11)             # Turn off LED
 
 init:
     jal switchjudge
-    sw a4, 8(s11)           # clear LED
-    lw a1, 4(s11)           # load test case index from address 0x10010004
+
+    sw a4, 8(s11)             # Clear LED again
+
+    li t1, 0xfffffff7         # Get test case index from switch (low 3 bits)
+    lw a1, 0(t1)
 
     beq a1, t6, case0
     addi a1, a1, -1
@@ -30,37 +33,42 @@ init:
     beq a1, t6, case7
     jal init
 
-# case0: Combine and display a + b
+# case0: 输入 a 与 b，
 case0:
+    # Input a
     jal switchjudge
-    lw t2, 0(s11)           # load input a from 0x10010000
+    li t1, 0xfffffff9
+    lw t2, 0(t1)
+    sw t2, 8(s11)        # Show a
+
+    # Input b
     jal switchjudge
-    lw t3, 4(s11)           # load input b from 0x10010004
-    slli t2, t2, 24
-    srli t2, t2, 16
-    add t2, t2, t3
-    sw t2, 8(s11)           # output to LED
+    lw t3, 2(t1)
+    sw t3, 8(s11)        # Overwrite LED with b
+
     jal init
 
-# case1: Input a and push to stack
+# case1: 输入 a 并压栈
 case1:
     jal switchjudge
-    lw t2, 0(s11)
-    sw t2, 12(s11)          # display a
+    li t1, 0xfffffff9
+    lw t2, 0(t1)
+    sw t2, 12(s11)
     addi sp, sp, -4
     sw t2, 0(sp)
     jal init
 
-# case2: Input b and push to stack
+# case2: 输入 b 并压栈
 case2:
     jal switchjudge
-    lw t3, 4(s11)
-    sw t3, 12(s11)          # display b
+    li t1, 0xfffffff5
+    lw t3, 0(t1)
+    sw t3, 12(s11)
     addi sp, sp, -4
     sw t3, 0(sp)
     jal init
 
-# case3: beq �� check if a == b
+# case3: beq 判断 a == b
 case3:
     lw a5, 4(sp)
     lw a6, 0(sp)
@@ -71,7 +79,7 @@ LEDcase3:
     sw a7, 8(s11)
     jal init
 
-# case4: blt �� check if a < b (signed)
+# case4: blt a < b (signed)
 case4:
     lw a5, 4(sp)
     lw a6, 0(sp)
@@ -82,7 +90,7 @@ LEDcase4:
     sw a7, 8(s11)
     jal init
 
-# case5: bltu �� check if a < b (unsigned)
+# case5: bltu a < b (unsigned)
 case5:
     lw a5, 4(sp)
     lw a6, 0(sp)
@@ -93,7 +101,7 @@ LEDcase5:
     sw a7, 8(s11)
     jal init
 
-# case6: slt �� a < b (signed) using slt
+# case6: slt a < b (signed)
 case6:
     lw a5, 4(sp)
     lw a6, 0(sp)
@@ -105,7 +113,7 @@ LEDcase6:
     sw a7, 8(s11)
     jal init
 
-# case7: sltu �� a < b (unsigned) using sltu
+# case7: sltu a < b (unsigned)
 case7:
     lw a5, 4(sp)
     lw a6, 0(sp)
@@ -117,11 +125,12 @@ LEDcase7:
     sw a7, 8(s11)
     jal init
 
-# switchjudge: Wait for button press and release (debounce)
+# switchjudge: 等待按钮按下+释放
 switchjudge:
-    lw t1, 16(s11)              # read button input from address 0x10010010
-    beq t1, x0, switchjudge     # wait for press
+    li t1, 0xffffff00         # 按钮地址
+    lw t2, 0(t1)
+    beq t2, x0, switchjudge
 wait_release:
-    lw t1, 16(s11)
-    bne t1, x0, wait_release    # wait for release
+    lw t2, 0(t1)
+    bne t2, x0, wait_release
     jr ra
