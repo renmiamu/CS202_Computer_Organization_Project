@@ -16,9 +16,9 @@ always @(negedge clk ) begin
         data_IO_input <= {{8{switch_input[15]}}, switch_input[15:8]};
     end else if (SwitchCtrl && address == 32'hffff_fff5)begin      //提取高8位输出（无符号）
         data_IO_input <= {8'b0, switch_input[15:8]};
-    end else if (SwitchCtrl && address == 32'hffff_fff7)begin      //提取低8位输出（无符号）
+    end else if (SwitchCtrl && address > 32'hffff_fff9)begin      //提取低8位输出（无符号）
         data_IO_input<={8'b0, switch_input[7:0]};               
-    end else if (SwitchCtrl && address == 32'hffff_fff9)begin      //提取低3位输出（获取测试编号要用）
+    end else if (SwitchCtrl && address == 32'hffff_fff7)begin      //提取低3位输出（获取测试编号要用）
         data_IO_input<={8'b0, switch_input[2:0]};
     end
 end
