@@ -13,7 +13,7 @@ module tub (
     output reg [7:0] tub_right
 );
 reg [2:0] count = 3'b000;
-always @(negedge clk ) begin
+always @(posedge clk ) begin
     count<=count+1'b1;
     case (count)
         3'b000:begin

@@ -7,18 +7,18 @@ module swtich (
     input confirmation,
     output reg [15:0] data_IO_input
 );
-always @(negedge clk ) begin
+always @(posedge clk ) begin
     if (~rst) begin
         data_IO_input={16{1'b0}};
-    end else if (SwitchCtrl && address == 33'hffff_fff1)begin      //16Î»Ö±½ÓÊä³ö
+    end else if (SwitchCtrl && address == 33'hffff_fff1)begin      //16ä½ç›´æ¥è¾“å‡º
         data_IO_input <= switch_input;
-    end else if (SwitchCtrl && address == 32'hffff_fff3)begin      //8Î»·ûºÅÀ©Õ¹Êä³ö
+    end else if (SwitchCtrl && address == 32'hffff_fff3)begin      //8ä½ç¬¦å·æ‰©å±•è¾“å‡º
         data_IO_input <= {{8{switch_input[15]}}, switch_input[15:8]};
-    end else if (SwitchCtrl && address == 32'hffff_fff5)begin      //ÌáÈ¡¸ß8Î»Êä³ö£¨ÎŞ·ûºÅ£©
+    end else if (SwitchCtrl && address == 32'hffff_fff5)begin      //æå–é«˜8ä½è¾“å‡ºï¼ˆæ— ç¬¦å·ï¼‰
         data_IO_input <= {8'b0, switch_input[15:8]};
-    end else if (SwitchCtrl && address > 32'hffff_fff9)begin      //ÌáÈ¡µÍ8Î»Êä³ö£¨ÎŞ·ûºÅ£©
+    end else if (SwitchCtrl && address > 32'hffff_fff9)begin      //æå–ä½8ä½è¾“å‡ºï¼ˆæ— ç¬¦å·ï¼‰
         data_IO_input<={8'b0, switch_input[7:0]};               
-    end else if (SwitchCtrl && address == 32'hffff_fff7)begin      //ÌáÈ¡µÍ3Î»Êä³ö£¨»ñÈ¡²âÊÔ±àºÅÒªÓÃ£©
+    end else if (SwitchCtrl && address == 32'hffff_fff7)begin      //æå–ä½3ä½è¾“å‡ºï¼ˆè·å–æµ‹è¯•ç¼–å·è¦ç”¨ï¼‰
         data_IO_input<={8'b0, switch_input[2:0]};
     end
 end
