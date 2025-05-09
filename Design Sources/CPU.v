@@ -1,128 +1,154 @@
 module CPU (
-    input wire clk,
-    input wire rst,
-    input wire [15:0] switch_in,
-    output wire [15:0] led_out
-);
+    input clk,              // 外部输入原始高频时钟（如100MHz）
+    input reset,
+    input [15:0] io_rdata,
+    output [15:0] io_wdata,
 
-    // Instruction Fetch
-    wire [31:0] inst;
-    wire [31:0] pc;
-    wire branch, zero;
+    output [31:0] pc_current,
+    output [31:0] instruction_out,
+    output [31:0] alu_result_out,
+    output [31:0] imm32_out,
+    output [3:0] alu_op_out,
+    output reg_write_out,
+    output mem_write_out
+);
+    // 分频后的内部时钟
+    wire clk_divided;
+
+    // 分频器实例化
+    cpuclk clk_divider (
+        .clk_in1(clk),
+        .clk_out1(clk_divided)
+    );
+
+    // ====================
+    // 内部信号声明
+    // ====================
+    wire [31:0] instruction;
+    wire nBranch, Branch, branch_lt, branch_ge, branch_ltu, branch_geu;
+    wire jal, jalr, MemRead, MemorIOToReg, MemWrite, ALUSrc, RegWrite, sftmd;
+    wire IORead, IOWrite;
+    wire [3:0] ALUop;
+    wire [31:0] read_data_1, read_data_2;
     wire [31:0] imm32;
+    wire [31:0] Alu_result;
+    wire zero;
+    wire branch_result;
+    wire [21:0] Alu_resultHigh = Alu_result[31:10];
+    wire [31:0] mem_rdata;
+    wire [31:0] addr_out;
+    wire [31:0] r_wdata;
+    wire [31:0] write_data;
+    wire LEDCtrl, SwitchCtrl;
+    wire [31:0] writeback_data;
+
+    // ====================
+    // 子模块实例化，使用 clk_divided
+    // ====================
 
     IFetch ifetch (
-        .clk(clk),
-        .rst(rst),
-        .branch(branch),
+        .clk(clk_divided),
+        .rst(reset),
+        .imm32(imm32),
+        .branch_result(branch_result),
         .zero(zero),
-        .imm32(imm32),
-        .inst(inst)
+        .jal(jal),
+        .jalr(jalr),
+        .Alu_result(Alu_result),
+        .instruction(instruction),
+        .pc_out(pc_current)
     );
 
-    // Instruction Decode and Control
-    wire ALUSrc, MemtoReg, RegWrite, MemRead, MemWrite, ioRead, ioWrite;
-    wire [3:0] ALUOp;
-
-    instruction_control controller (
-        .inst(inst),
-        .ALUSrc(ALUSrc),
-        .MemtoReg(MemtoReg),
-        .RegWrite(RegWrite),
+    instruction_control ctrl (
+        .instruction(instruction),
+        .Alu_resultHigh(Alu_resultHigh),
+        .nBranch(nBranch),
+        .Branch(Branch),
+        .branch_lt(branch_lt),
+        .branch_ge(branch_ge),
+        .branch_ltu(branch_ltu),
+        .branch_geu(branch_geu),
+        .jal(jal),
+        .jalr(jalr),
         .MemRead(MemRead),
+        .MemorIOToReg(MemorIOToReg),
+        .ALUop(ALUop),
         .MemWrite(MemWrite),
-        .ioRead(ioRead),
-        .ioWrite(ioWrite),
-        .ALUOp(ALUOp),
-        .branch(branch)
-    );
-
-    // Register and Immediate Decoder
-    wire [31:0] reg_data1, reg_data2, imm;
-    wire [4:0] rs1, rs2, rd;
-
-    reg_and_imm decoder (
-        .inst(inst),
-        .clk(clk),
-        .rst(rst),
+        .ALUSrc(ALUSrc),
         .RegWrite(RegWrite),
-        .write_data(write_back_data),
-        .data1(reg_data1),
-        .data2(reg_data2),
-        .imm32(imm32),
-        .rs1(rs1), .rs2(rs2), .rd(rd)
+        .sftmd(sftmd),
+        .IORead(IORead),
+        .IOWrite(IOWrite)
     );
 
-    // ALU
-    wire [31:0] alu_b;
-    wire [31:0] alu_result;
-
-    assign alu_b = ALUSrc ? imm32 : reg_data2;
+    reg_and_imm regfile (
+        .clk(clk_divided),
+        .rst(reset),
+        .inst(instruction),
+        .write_data(writeback_data),
+        .RegWrite(RegWrite),
+        .read_data_1(read_data_1),
+        .read_data_2(read_data_2),
+        .imm32(imm32)
+    );
 
     ALU alu (
-        .data1(reg_data1),
-        .data2(alu_b),
-        .ALUOp(ALUOp),
-        .result(alu_result),
-        .zero(zero)
+        .ALUop(ALUop),
+        .ALUSrc(ALUSrc),
+        .sftmd(sftmd),
+        .Branch(Branch),
+        .nBranch(nBranch),
+        .Branch_lt(branch_lt),
+        .Branch_ge(branch_ge),
+        .Branch_ltu(branch_ltu),
+        .Branch_geu(branch_geu),
+        .read_data_1(read_data_1),
+        .read_data_2(read_data_2),
+        .imm32(imm32),
+        .Alu_result(Alu_result),
+        .zero(zero),
+        .branch_result(branch_result)
     );
 
-    // Memory and IO
-    wire [31:0] m_rdata;
-    wire [31:0] addr_out, write_data, reg_write_data;
-    wire [15:0] io_rdata;
-    wire LEDCtrl, SwitchCtrl;
-
-    Memory data_mem (
-        .clk(clk),
-        .rst(rst),
-        .mRead(MemRead),
-        .mWrite(MemWrite),
-        .addr_in(addr_out),
-        .write_data(write_data),
-        .m_rdata(m_rdata)
+    Data_mem data_memory (
+        .clk(clk_divided),
+        .m_read(MemRead),
+        .m_write(MemWrite),
+        .addr(addr_out),
+        .d_in(write_data),
+        .d_out(mem_rdata)
     );
 
-    MemOrIO memorio (
+    MemOrIO mem_io (
         .mRead(MemRead),
         .mWrite(MemWrite),
-        .ioRead(ioRead),
-        .ioWrite(ioWrite),
-        .addr_in(alu_result),
+        .ioRead(IORead),
+        .ioWrite(IOWrite),
+        .addr_in(Alu_result),
         .addr_out(addr_out),
-        .m_rdata(m_rdata),
+        .m_rdata(mem_rdata),
         .io_rdata(io_rdata),
-        .r_wdata(reg_write_data),
-        .r_rdata(reg_data2),
+        .r_wdata(r_wdata),
+        .r_rdata(read_data_2),
         .write_data(write_data),
         .LEDCtrl(LEDCtrl),
         .SwitchCtrl(SwitchCtrl)
     );
 
-    LED led (
-        .ledctrl(LEDCtrl),
-        .write_data(write_data),
-        .clk(clk),
-        .rst(rst),
-        .led_out(led_out)
-    );
-
-    switch sw (
-        .switchctrl(SwitchCtrl),
-        .clk(clk),
-        .rst(rst),
-        .switch_in(switch_in),
-        .switch_out(io_rdata)
-    );
-
-    // Writeback mux
-    wire [31:0] write_back_data;
-
     writeback_mux wb_mux (
-        .MemtoReg(MemtoReg),
-        .alu_result(alu_result),
-        .mem_result(reg_write_data),
-        .write_data(write_back_data)
+        .MemorIOToReg(MemorIOToReg),
+        .Alu_result(Alu_result),
+        .r_wdata(r_wdata),
+        .writeback_data(writeback_data)
     );
+
+    // 对外输出信号
+    assign instruction_out = instruction;
+    assign alu_result_out = Alu_result;
+    assign imm32_out = imm32;
+    assign alu_op_out = ALUop;
+    assign reg_write_out = RegWrite;
+    assign mem_write_out = MemWrite;
+    assign io_wdata = LEDCtrl ? write_data[15:0] : 16'b0;
 
 endmodule
