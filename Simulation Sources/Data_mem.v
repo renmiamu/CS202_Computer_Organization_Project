@@ -1,66 +1,63 @@
 `timescale 1ns / 1ps
-module Memory_tb;
 
+module Data_mem_tb;
+
+    // Testbench signals
     reg clk;
-    reg rst;
-    reg mRead;
-    reg mWrite;
-    reg [31:0] addr_in;
-    reg [31:0] write_data;
-    wire [31:0] m_rdata;
+    reg m_read;
+    reg m_write;
+    reg [31:0] addr;
+    reg [31:0] d_in;
+    wire [31:0] d_out;
 
-    // 实例化被测模块
-    Memory uut (
+    // Instantiate your Data_mem module
+    Data_mem uut (
         .clk(clk),
-        .rst(rst),
-        .mRead(mRead),
-        .mWrite(mWrite),
-        .addr_in(addr_in),
-        .write_data(write_data),
-        .m_rdata(m_rdata)
+        .m_read(m_read),
+        .m_write(m_write),
+        .addr(addr),
+        .d_in(d_in),
+        .d_out(d_out)
     );
 
+    // Clock generation: 10ns clock period
+    always #5 clk = ~clk;
+
     initial begin
+        // Initialize signals
         clk = 0;
-        forever #5 clk = ~clk; // 10ns 时钟周期
-    end
+        m_read = 0;
+        m_write = 0;
+        addr = 0;
+        d_in = 0;
 
-    initial begin
-        // 初始化
-        rst = 1; mRead = 0; mWrite = 0;
-        addr_in = 0;
-        write_data = 0;
-        #10 rst = 0;
 
-        // 写入数据
         #10;
-        addr_in = 32'h00000010;
-        write_data = 32'h12345678;
-        mWrite = 1;
-        #10;
-        mWrite = 0;
+        addr = 32'h00000010;
+        d_in = 32'hDEADBEEF;
+        m_write = 1;
+        #10;                 
+        m_write = 0;
 
-        // 读出数据
         #10;
-        mRead = 1;
+        addr = 32'h00000010;
+        m_read = 1;
         #10;
-        mRead = 0;
+        m_read = 0;
 
-    
-        // 再次写入新数据
         #10;
-        addr_in = 32'h00000020;
-        write_data = 32'hAABBCCDD;
-        mWrite = 1;
+        addr = 32'h00000020;
+        d_in = 32'hCAFEBABE;
+        m_write = 1;
         #10;
-        mWrite = 0;
+        m_write = 0;
 
-        // 读出新数据
         #10;
-        addr_in = 32'h00000020;
-        mRead = 1;
+        addr = 32'h00000020;
+        m_read = 1;
         #10;
-        mRead = 0;
+        m_read = 0;
 
     end
+
 endmodule

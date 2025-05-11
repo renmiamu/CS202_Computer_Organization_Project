@@ -5,7 +5,7 @@ _start:
     li t6, 0                  # Zero for comparison
     li t5, -1                 # -1 for tests
     li a4, -1                 # a4 = 0xFFFFFFFF
-    li s11, 0xfffffff00        # For LED/Output use
+    li s11, 0xffffffe8       # For LED/Output use
     sw a4, 8(s11)             # Turn off LED
 
 init:
