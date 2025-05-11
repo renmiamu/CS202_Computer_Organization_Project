@@ -10,6 +10,8 @@ module swtich (
 always @(negedge clk ) begin
     if (~rst) begin
         data_IO_input={16{1'b0}};
+    end else if (SwitchCtrl && address == 32'hffff_ff00)begin      //16位直接输出（切换样例开关）
+        data_IO_input <= switch_input;
     end else if (SwitchCtrl && address == 32'hffff_fff1)begin      //16位直接输出
         data_IO_input <= switch_input;
     end else if (SwitchCtrl && address == 32'hffff_fff3)begin      //8位符号扩展输出
