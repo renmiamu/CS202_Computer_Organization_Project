@@ -166,6 +166,17 @@ always @(*) begin
             RegWrite=1'b1;
             ALUSrc=1'b1;
         end
+        // lui
+        7'b0110111: begin
+            RegWrite = 1'b1;
+            ALUop = 4'b1000; //直接加载高位立即数
+        end
+
+        // auipc (Add Upper Immediate to PC)
+        7'b0010111: begin
+            RegWrite = 1'b1;
+            ALUop = 4'b1001; //PC + 高位立即数
+        end
     endcase
 end
 
