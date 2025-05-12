@@ -8,20 +8,18 @@ module swtich (
     output [15:0] reg data_IO_input
 );
 always @(negedge clk ) begin
-    if (~rst) begin
-        data_IO_input={16{1'b0}};
-    end else if (SwitchCtrl && address == 32'hffff_ff00)begin      //16位直接输出（切换样例开关）
-        data_IO_input <= switch_input;
-    end else if (SwitchCtrl && address == 32'hffff_fff1)begin      //16位直接输出
-        data_IO_input <= switch_input;
-    end else if (SwitchCtrl && address == 32'hffff_fff3)begin      //8位符号扩展输出
-        data_IO_input <= {{8{switch_input[15]}}, switch_input[15:8]};
-    end else if (SwitchCtrl && address == 32'hffff_fff5)begin      //提取高8位输出（无符号）
-        data_IO_input <= {8'b0, switch_input[15:8]};
-    end else if (SwitchCtrl && address >= 32'hffff_fff9)begin      //提取低8位输出（无符号）
-        data_IO_input<={8'b0, switch_input[7:0]};               
-    end else if (SwitchCtrl && address == 32'hffff_fff7)begin      //提取低3位输出（获取测试编号要用）
-        data_IO_input<={8'b0, switch_input[2:0]};
+      if (~rst) begin
+        data_IO_input <= 16'b0;
+    end else if (SwitchCtrl && confirmation) begin
+        case (address)
+            32'hffff_ff00: data_IO_input <= switch_input;
+            32'hffff_fff1: data_IO_input <= switch_input;
+            32'hffff_fff3: data_IO_input <= {{8{switch_input[15]}}, switch_input[15:8]};
+            32'hffff_fff5: data_IO_input <= {8'b0, switch_input[15:8]};
+            32'hffff_fff7: data_IO_input <= {8'b0, switch_input[2:0]};
+            32'hffff_fff9: data_IO_input <= {8'b0, switch_input[7:0]};
+            default: data_IO_input <= 16'b0;
+        endcase
     end
 end
     
