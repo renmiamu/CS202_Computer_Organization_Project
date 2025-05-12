@@ -3,14 +3,6 @@ module CPU (
     input reset,
     input [15:0] io_rdata,
     output [15:0] io_wdata,
-
-    output [31:0] pc_current,
-    output [31:0] instruction_out,
-    output [31:0] alu_result_out,
-    output [31:0] imm32_out,
-    output [3:0] alu_op_out,
-    output reg_write_out,
-    output mem_write_out
 );
     // 分频后的内部时钟
     wire clk_divided;
@@ -137,14 +129,5 @@ module CPU (
         .r_wdata(r_wdata),
         .writeback_data(writeback_data)
     );
-
-    // 对外输出信号
-    assign instruction_out = instruction;
-    assign alu_result_out = Alu_result;
-    assign imm32_out = imm32;
-    assign alu_op_out = ALUop;
-    assign reg_write_out = RegWrite;
-    assign mem_write_out = MemWrite;
-    assign io_wdata = LEDCtrl ? write_data[15:0] : 16'b0;
 
 endmodule
