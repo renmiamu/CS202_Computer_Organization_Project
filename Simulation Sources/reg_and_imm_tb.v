@@ -33,10 +33,10 @@ task assert_eq;
     input [31:0] expected;
     begin
         if (actual !== expected) begin
-            $display("❌ ASSERT FAILED: %s | Expected: %h, Got: %h", msg, expected, actual);
+            $display("FAILED: %s | Expected: %h, Got: %h", msg, expected, actual);
             $finish;
         end else begin
-            $display("✅ %s passed", msg);
+            $display("%s passed", msg);
         end
     end
 endtask
