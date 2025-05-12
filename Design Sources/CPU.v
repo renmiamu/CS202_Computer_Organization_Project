@@ -1,5 +1,5 @@
 module CPU (
-    input clk,              // Íâ²¿ÊäÈëÔ­Ê¼¸ßÆµÊ±ÖÓ£¨Èç100MHz£©
+    input clk,             
     input reset,
     input [15:0] io_rdata,
     output [15:0] io_wdata,
@@ -12,18 +12,16 @@ module CPU (
     output reg_write_out,
     output mem_write_out
 );
-    // ·ÖÆµºóµÄÄÚ²¿Ê±ÖÓ
+    // åˆ†é¢‘åçš„å†…éƒ¨æ—¶é’Ÿ
     wire clk_divided;
 
-    // ·ÖÆµÆ÷ÊµÀı»¯
+    // åˆ†é¢‘å™¨å®ä¾‹åŒ–
     cpuclk clk_divider (
         .clk_in1(clk),
         .clk_out1(clk_divided)
     );
 
-    // ====================
-    // ÄÚ²¿ĞÅºÅÉùÃ÷
-    // ====================
+    // å†…éƒ¨ä¿¡å·å£°æ˜
     wire [31:0] instruction;
     wire nBranch, Branch, branch_lt, branch_ge, branch_ltu, branch_geu;
     wire jal, jalr, MemRead, MemorIOToReg, MemWrite, ALUSrc, RegWrite, sftmd;
@@ -42,9 +40,7 @@ module CPU (
     wire LEDCtrl, SwitchCtrl;
     wire [31:0] writeback_data;
 
-    // ====================
-    // ×ÓÄ£¿éÊµÀı»¯£¬Ê¹ÓÃ clk_divided
-    // ====================
+    // å­æ¨¡å—å®ä¾‹åŒ–ï¼Œä½¿ç”¨ clk_divided
 
     IFetch ifetch (
         .clk(clk_divided),
@@ -142,7 +138,7 @@ module CPU (
         .writeback_data(writeback_data)
     );
 
-    // ¶ÔÍâÊä³öĞÅºÅ
+    // å¯¹å¤–è¾“å‡ºä¿¡å·
     assign instruction_out = instruction;
     assign alu_result_out = Alu_result;
     assign imm32_out = imm32;
