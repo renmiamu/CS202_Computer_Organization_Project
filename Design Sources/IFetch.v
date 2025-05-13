@@ -35,14 +35,14 @@ always @(*) begin
 end
 
 // 更新PC值
-always @(posedge clk or negedge rst) begin
+always @(negedge clk or negedge rst) begin
     if (!rst) begin
         pc <=0;
     end else begin
         pc <= next_pc;
     end
 end
-always @(posedge clk or negedge rst) begin
+always @(negedge clk or negedge rst) begin
     if (!rst) begin
         pc_out <=0;
     end else begin
