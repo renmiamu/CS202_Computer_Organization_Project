@@ -25,7 +25,6 @@ always @(*) begin
     zero=1'b0;
     Alu_result={32{1'b0}};
     branch_result=1'b0;
-    //鎬诲叡13浣?
     case({ALUop,ALUSrc,sftmd,Branch,nBranch,Branch_lt,Branch_ge,Branch_ltu,Branch_geu,is_imm})
         13'b0000_0_0_0_0_0_0_0_0_0:begin        //add
             Alu_result=read_data_1+read_data_2;
