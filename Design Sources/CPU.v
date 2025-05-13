@@ -2,12 +2,13 @@ module CPU (
     input clk,                  // 原始时钟 100MHz
     input reset,                // 全局复位
     input [15:0] switchInput,   // 来自拨码开关的输入
-    input confirmation,         // 模拟确认按键
+    input enter,         // 模拟确认按键
 
     output [7:0] tubSel,        // 数码管位选
-    output [7:0] tubLeft,       // 左侧段选
-    output [7:0] tubRight,      // 右侧段选
-    output [31:0] instruction   // 输出当前指令用于调试
+    output [7:0] seg_led1234,       // 左侧段选
+    output [7:0] seg_led5678,      // 右侧段选
+    output [31:0] instruction
+
 );
 
     wire clk_divided;
@@ -40,6 +41,7 @@ module CPU (
     wire [3:0] ALUop;
 
     wire [31:0] pc_current;
+    wire [31:0] instruction;
 
     // ---------- IF ----------
     IFetch ifetch (
@@ -153,12 +155,12 @@ module CPU (
         .switchCtrl(SwitchCtrl),
         .switchInput(switchInput),
         .address(addr_out),
-        .confirmation(confirmation),
+        .confirmation(enter),
         .writeData(write_data),
         .dataIOInput(io_rdata),
         .tubSel(tubSel),
-        .tubLeft(tubLeft),
-        .tubRight(tubRight)
+        .tubLeft(seg_led1234),
+        .tubRight(seg_led5678)
     );
 
 endmodule
