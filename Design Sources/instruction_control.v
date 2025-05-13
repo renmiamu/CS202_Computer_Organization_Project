@@ -45,6 +45,7 @@ always @(*) begin
     sftmd=1'b0;
     IORead=1'b0;
     IOWrite=1'b0;
+    jal=1'b0;
     case(opcode)
         //R-type
         7'b0110011:begin
