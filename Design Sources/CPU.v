@@ -1,19 +1,24 @@
 module CPU (
-    input clk,             
-    input reset,
-    input [15:0] io_rdata,
-    output [15:0] io_wdata,
+    input clk,              // Ô­Ê¼¸ßÆµÊ±ÖÓ£¨Èç 100MHz£©
+    input reset,            // ÏµÍ³¸´Î»
+    input [15:0] io_rdata,  // IOÄ£¿é·µ»ØµÄ¶ÁÈ¡Êı¾İ
+
+    output [15:0] io_wdata, // Ğ´¸øIO£¨ÊıÂë¹ÜµÈ£©µÄÊı¾İ
+    output [31:0] addr_out, // IO »ò Mem µÄµØÖ·Êä³ö
+    output [31:0] write_data, // Ğ´ÈëÊı¾İ
+    output LEDCtrl,         // IOĞ´Ê¹ÄÜ£¨LED ¿ØÖÆ£©
+    output SwitchCtrl       // IO¶ÁÊ¹ÄÜ£¨SW¶ÁÈ¡£©
 );
-    // åˆ†é¢‘åçš„å†…éƒ¨æ—¶é’Ÿ
+
+    // ·ÖÆµºóµÄÄÚ²¿Ê±ÖÓ
     wire clk_divided;
 
-    // åˆ†é¢‘å™¨å®ä¾‹åŒ–
     cpuclk clk_divider (
         .clk_in1(clk),
         .clk_out1(clk_divided)
     );
 
-    // å†…éƒ¨ä¿¡å·å£°æ˜
+    // ÄÚ²¿ĞÅºÅ
     wire [31:0] instruction;
     wire nBranch, Branch, branch_lt, branch_ge, branch_ltu, branch_geu;
     wire jal, jalr, MemRead, MemorIOToReg, MemWrite, ALUSrc, RegWrite, sftmd;
@@ -26,14 +31,11 @@ module CPU (
     wire branch_result;
     wire [21:0] Alu_resultHigh = Alu_result[31:10];
     wire [31:0] mem_rdata;
-    wire [31:0] addr_out;
     wire [31:0] r_wdata;
-    wire [31:0] write_data;
-    wire LEDCtrl, SwitchCtrl;
     wire [31:0] writeback_data;
 
-    // å­æ¨¡å—å®ä¾‹åŒ–ï¼Œä½¿ç”¨ clk_divided
-
+    // ---------- IF È¡Ö¸ ----------
+    wire [31:0] pc_current;
     IFetch ifetch (
         .clk(clk_divided),
         .rst(reset),
@@ -47,6 +49,7 @@ module CPU (
         .pc_out(pc_current)
     );
 
+    // ---------- ¿ØÖÆÆ÷ ----------
     instruction_control ctrl (
         .instruction(instruction),
         .Alu_resultHigh(Alu_resultHigh),
@@ -69,6 +72,7 @@ module CPU (
         .IOWrite(IOWrite)
     );
 
+    // ---------- RegFile & IMM ----------
     reg_and_imm regfile (
         .clk(clk_divided),
         .rst(reset),
@@ -80,6 +84,7 @@ module CPU (
         .imm32(imm32)
     );
 
+    // ---------- ALU ----------
     ALU alu (
         .ALUop(ALUop),
         .ALUSrc(ALUSrc),
@@ -98,6 +103,7 @@ module CPU (
         .branch_result(branch_result)
     );
 
+    // ---------- Data Memory ----------
     Data_mem data_memory (
         .clk(clk_divided),
         .m_read(MemRead),
@@ -107,6 +113,7 @@ module CPU (
         .d_out(mem_rdata)
     );
 
+    // ---------- Mem / IO Arbiter ----------
     MemOrIO mem_io (
         .mRead(MemRead),
         .mWrite(MemWrite),
@@ -123,11 +130,15 @@ module CPU (
         .SwitchCtrl(SwitchCtrl)
     );
 
+    // ---------- WriteBack ----------
     writeback_mux wb_mux (
         .MemorIOToReg(MemorIOToReg),
         .Alu_result(Alu_result),
         .r_wdata(r_wdata),
         .writeback_data(writeback_data)
     );
+
+    // ---------- IOÊä³ö¿ØÖÆ ----------
+    assign io_wdata = LEDCtrl ? write_data[15:0] : 16'b0;
 
 endmodule

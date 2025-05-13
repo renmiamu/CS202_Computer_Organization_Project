@@ -43,4 +43,4 @@ module CPU_TOP (
         .tubRight(seg_led5678)
     );
 
-endmodule 
+endmodule
