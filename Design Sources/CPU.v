@@ -1,16 +1,15 @@
 module CPU (
-    input clk,              // Ô­Ê¼¸ßÆµÊ±ÖÓ£¨Èç 100MHz£©
-    input reset,            // ÏµÍ³¸´Î»
-    input [15:0] io_rdata,  // IOÄ£¿é·µ»ØµÄ¶ÁÈ¡Êı¾İ
+    input clk,                  // åŸå§‹æ—¶é’Ÿ 100MHz
+    input reset,                // å…¨å±€å¤ä½
+    input [15:0] switchInput,   // æ¥è‡ªæ‹¨ç å¼€å…³çš„è¾“å…¥
+    input confirmation,         // æ¨¡æ‹Ÿç¡®è®¤æŒ‰é”®
 
-    output [15:0] io_wdata, // Ğ´¸øIO£¨ÊıÂë¹ÜµÈ£©µÄÊı¾İ
-    output [31:0] addr_out, // IO »ò Mem µÄµØÖ·Êä³ö
-    output [31:0] write_data, // Ğ´ÈëÊı¾İ
-    output LEDCtrl,         // IOĞ´Ê¹ÄÜ£¨LED ¿ØÖÆ£©
-    output SwitchCtrl       // IO¶ÁÊ¹ÄÜ£¨SW¶ÁÈ¡£©
+    output [7:0] tubSel,        // æ•°ç ç®¡ä½é€‰
+    output [7:0] tubLeft,       // å·¦ä¾§æ®µé€‰
+    output [7:0] tubRight,      // å³ä¾§æ®µé€‰
+    output [31:0] instruction   // è¾“å‡ºå½“å‰æŒ‡ä»¤ç”¨äºè°ƒè¯•
 );
 
-    // ·ÖÆµºóµÄÄÚ²¿Ê±ÖÓ
     wire clk_divided;
 
     cpuclk clk_divider (
@@ -18,24 +17,31 @@ module CPU (
         .clk_out1(clk_divided)
     );
 
-    // ÄÚ²¿ĞÅºÅ
-    wire [31:0] instruction;
+    // ---------- ä¸­é—´ä¿¡å· ----------
+    wire [15:0] io_rdata;
+    wire [15:0] io_wdata;
+    wire [31:0] addr_out;
+    wire [31:0] write_data;
+    wire LEDCtrl;
+    wire SwitchCtrl;
+
+    wire [31:0] Alu_result;
+    wire [31:0] mem_rdata;
+    wire [31:0] r_wdata;
+    wire [31:0] writeback_data;
+    wire [31:0] read_data_1, read_data_2;
+    wire [31:0] imm32;
+    wire [21:0] Alu_resultHigh = Alu_result[31:10];
+    wire zero, branch_result;
+
     wire nBranch, Branch, branch_lt, branch_ge, branch_ltu, branch_geu;
     wire jal, jalr, MemRead, MemorIOToReg, MemWrite, ALUSrc, RegWrite, sftmd;
     wire IORead, IOWrite;
     wire [3:0] ALUop;
-    wire [31:0] read_data_1, read_data_2;
-    wire [31:0] imm32;
-    wire [31:0] Alu_result;
-    wire zero;
-    wire branch_result;
-    wire [21:0] Alu_resultHigh = Alu_result[31:10];
-    wire [31:0] mem_rdata;
-    wire [31:0] r_wdata;
-    wire [31:0] writeback_data;
 
-    // ---------- IF È¡Ö¸ ----------
     wire [31:0] pc_current;
+
+    // ---------- IF ----------
     IFetch ifetch (
         .clk(clk_divided),
         .rst(reset),
@@ -49,7 +55,7 @@ module CPU (
         .pc_out(pc_current)
     );
 
-    // ---------- ¿ØÖÆÆ÷ ----------
+    // ---------- æ§åˆ¶å™¨ ----------
     instruction_control ctrl (
         .instruction(instruction),
         .Alu_resultHigh(Alu_resultHigh),
@@ -72,7 +78,7 @@ module CPU (
         .IOWrite(IOWrite)
     );
 
-    // ---------- RegFile & IMM ----------
+    // ---------- å¯„å­˜å™¨ä¸ç«‹å³æ•° ----------
     reg_and_imm regfile (
         .clk(clk_divided),
         .rst(reset),
@@ -103,7 +109,7 @@ module CPU (
         .branch_result(branch_result)
     );
 
-    // ---------- Data Memory ----------
+    // ---------- æ•°æ®å­˜å‚¨å™¨ ----------
     Data_mem data_memory (
         .clk(clk_divided),
         .m_read(MemRead),
@@ -113,7 +119,7 @@ module CPU (
         .d_out(mem_rdata)
     );
 
-    // ---------- Mem / IO Arbiter ----------
+    // ---------- å†…å­˜å’ŒIOä»²è£å™¨ ----------
     MemOrIO mem_io (
         .mRead(MemRead),
         .mWrite(MemWrite),
@@ -130,15 +136,29 @@ module CPU (
         .SwitchCtrl(SwitchCtrl)
     );
 
-    // ---------- WriteBack ----------
+    // ---------- å†™å›å¤šè·¯é€‰æ‹©å™¨ ----------
     writeback_mux wb_mux (
         .MemorIOToReg(MemorIOToReg),
         .Alu_result(Alu_result),
         .r_wdata(r_wdata),
+        .pc_out(pc_current),
+        .jal(jal),
         .writeback_data(writeback_data)
     );
 
-    // ---------- IOÊä³ö¿ØÖÆ ----------
-    assign io_wdata = LEDCtrl ? write_data[15:0] : 16'b0;
+    // ---------- IO æ¨¡å—å®ä¾‹åŒ– ----------
+    IO io_module (
+        .clk(clk_divided),
+        .rst(reset),
+        .switchCtrl(SwitchCtrl),
+        .switchInput(switchInput),
+        .address(addr_out),
+        .confirmation(confirmation),
+        .writeData(write_data),
+        .dataIOInput(io_rdata),
+        .tubSel(tubSel),
+        .tubLeft(tubLeft),
+        .tubRight(tubRight)
+    );
 
 endmodule

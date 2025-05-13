@@ -12,7 +12,6 @@ module IFetch (
 );
 
 reg [31:0] pc;
-reg [31:0] next_pc;
 
 prgrom urom (
     .clka(clk),
@@ -20,31 +19,18 @@ prgrom urom (
     .douta(instruction)
 );
 
-always @(*) begin
-    if (jalr) begin
-        next_pc = Alu_result;
+always @(negedge clk) begin
+    if (!rst) begin
+        pc<={32{1'b0}};
+    end else if (jalr) begin
+        pc <= Alu_result;
     end else if (jal) begin
-        next_pc = pc + imm32;
+        pc <= pc + imm32;
+        pc_out<=pc+4;
     end else if (branch_result) begin
-        next_pc = pc + imm32;
+        pc <= pc + imm32;
     end else begin
-        next_pc = pc + 4;
-    end
-end
-
-always @(posedge clk or negedge rst) begin
-    if (!rst) begin
-        pc <= 32'b0;
-    end else begin
-        pc <= next_pc;
-    end
-end
-
-always @(posedge clk or negedge rst) begin
-    if (!rst) begin
-        pc_out <= 32'b0;
-    end else begin
-        pc_out <= pc;
+        pc <= pc + 4;
     end
 end
 
