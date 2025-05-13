@@ -22,6 +22,7 @@ prgrom urom (
 always @(negedge clk) begin
     if (!rst) begin
         pc<={32{1'b0}};
+        pc_out<={32{1'b0}};
     end else if (jalr) begin
         pc <= Alu_result;
     end else if (jal) begin
