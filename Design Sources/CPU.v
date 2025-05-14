@@ -32,7 +32,6 @@ module CPU (
     wire [31:0] writeback_data;
     wire [31:0] read_data_1, read_data_2;
     wire [31:0] imm32;
-    wire [21:0] Alu_resultHigh = Alu_result[31:10];
     wire zero, branch_result;
 
     wire nBranch, Branch, branch_lt, branch_ge, branch_ltu, branch_geu;
@@ -60,7 +59,7 @@ module CPU (
     // ---------- 控制器 ----------
     instruction_control ctrl (
         .instruction(instruction),
-        .Alu_resultHigh(Alu_resultHigh),
+        .Alu_result(Alu_result),
         .nBranch(nBranch),
         .Branch(Branch),
         .branch_lt(branch_lt),

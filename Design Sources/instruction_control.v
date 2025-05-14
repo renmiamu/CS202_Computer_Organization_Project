@@ -1,6 +1,6 @@
 module instruction_control (
     input [31:0] instruction,
-    input [21:0] Alu_resultHigh,
+    input [31:0] Alu_result,
     output reg nBranch,
     output reg Branch,
     output reg branch_lt,
@@ -26,8 +26,8 @@ assign func3 = instruction[14:12];
 assign func7 = instruction[31:25];
 assign opcode = instruction[6:0];
 
-wire is_IO_address = (Alu_resultHigh == 22'h3FFFFF); // 0xFFFFFC00
-wire is_RAM_address = (Alu_resultHigh < 22'h000040); // 0x00000000-0x00010000
+wire is_IO_address = (Alu_result > 32'hFFFFFC00); // 0xFFFFFC00
+wire is_RAM_address = (Alu_result < 32'h00010000); // 0x00000000-0x00010000
 
 always @(*) begin
     nBranch=1'b0;
