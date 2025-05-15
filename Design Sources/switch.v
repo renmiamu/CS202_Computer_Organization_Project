@@ -20,6 +20,8 @@ always @(posedge clk) begin
             32'hffff_fff9: dataIOInput <= {{8{1'b0}}, switchInput[7:0]};                     
             default: dataIOInput <= {16{1'b0}};
         endcase
+    end else begin
+        dataIOInput <= {16{1'b0}};
     end
 end
 
