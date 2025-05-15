@@ -43,6 +43,15 @@ module IO (
             s6 <= writeData[11:8];
             s7 <= writeData[7:4];
             s8 <= writeData[3:0];
+        end else begin
+            s1 <= s1;
+            s2 <= s2;
+            s3 <= s3;
+            s4 <= s4;
+            s5 <= s5;
+            s6 <= s6;
+            s7 <= s7;
+            s8 <= s8;            
         end
     end
 
