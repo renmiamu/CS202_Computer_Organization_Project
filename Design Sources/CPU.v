@@ -149,7 +149,7 @@ module CPU (
 
     // ---------- IO 模块实例化 ----------
     IO io_module (
-        .clk(clk_divided),
+        .clk(~clk_divided),
         .rst(reset),
         .switchCtrl(SwitchCtrl),
         .switchInput(switchInput),
