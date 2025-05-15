@@ -2,6 +2,8 @@ module IO (
     input clk,
     input rst,
     input switchCtrl,
+    input [31:0]r_wdata,
+    input LEDCtrl,
     input [15:0] switchInput,
     input [31:0] address,
     input confirmation,
@@ -9,7 +11,8 @@ module IO (
     output [15:0] dataIOInput,
     output [7:0] tubSel,
     output [7:0] tubLeft,
-    output [7:0] tubRight
+    output [7:0] tubRight,
+    output [15:0] dataOut
 );
 
     wire [15:0] sw_data_out;
@@ -23,6 +26,15 @@ module IO (
         .confirmation(confirmation),
         .dataIOInput(sw_data_out)
     );
+
+    led_control lc(
+    .clk(clk),
+    .rst(rst),
+    .LEDCtrl(LEDCtrl),
+    .r_wdata(r_wdata),
+    .dataOut(dataOut)
+    );
+
 
     assign dataIOInput = sw_data_out;
 

@@ -7,9 +7,18 @@ module CPU (
     output [7:0] tubSel,        // 数码管位选
     output [7:0] seg_led1234,       // 左侧段选
     output [7:0] seg_led5678,      // 右侧段选
-    output [31:0] instruction
-
+    output [15:0] dataOut
+//    output [31:0] instruction,
+//    output branch_result,
+//    output Branch,
+//    output [31:0] read_data_1,read_data_2,
+//    output [31:0] imm32,
+//    output [15:0] sw_data_out,
+//    output [31:0] addr_out,
+//    output [31:0] Alu_result
 );
+
+
 
     wire clk_divided;
 
@@ -33,13 +42,15 @@ module CPU (
     wire [31:0] read_data_1, read_data_2;
     wire [31:0] imm32;
     wire zero, branch_result;
-
-    wire nBranch, Branch, branch_lt, branch_ge, branch_ltu, branch_geu;
+//    wire zero;
+//    wire nBranch, branch_lt, branch_ge, branch_ltu, branch_geu;
+     wire nBranch, Branch, branch_lt, branch_ge, branch_ltu, branch_geu;
     wire jal, jalr, MemRead, MemorIOToReg, MemWrite, ALUSrc, RegWrite, sftmd;
     wire IORead, IOWrite;
     wire [3:0] ALUop;
 
     wire [31:0] pc_current;
+    
     wire [31:0] instruction;
 
     // ---------- IF ----------
@@ -152,6 +163,8 @@ module CPU (
         .clk(~clk_divided),
         .rst(reset),
         .switchCtrl(SwitchCtrl),
+        .r_wdata(r_wdata),
+        .LEDCtrl(LEDCtrl),
         .switchInput(switchInput),
         .address(addr_out),
         .confirmation(enter),
@@ -159,7 +172,8 @@ module CPU (
         .dataIOInput(io_rdata),
         .tubSel(tubSel),
         .tubLeft(seg_led1234),
-        .tubRight(seg_led5678)
+        .tubRight(seg_led5678),
+        .dataOut(dataOut)
     );
 
 endmodule
