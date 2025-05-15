@@ -46,6 +46,7 @@ always @(*) begin
     IORead=1'b0;
     IOWrite=1'b0;
     jal=1'b0;
+    jalr=1'b0;
     case(opcode)
         //R-type
         7'b0110011:begin
@@ -116,6 +117,7 @@ always @(*) begin
         7'b0000011:begin
             ALUSrc=1'b1;
             MemorIOToReg=1'b1;
+            RegWrite=1'b1;
             ALUop=4'b0000;
             if (is_IO_address) begin
                 IORead=1'b1;
