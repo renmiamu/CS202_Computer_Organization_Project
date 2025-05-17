@@ -101,6 +101,9 @@ always @(*) begin
                 branch_result=1'b1;
             end
         end
+        13'b1000_1_0_0_0_0_0_0_0_1:begin
+            Alu_result=imm32;
+        end
     endcase
     if (Alu_result=={32{1'b0}})begin
         zero=1'b1;
