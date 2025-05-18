@@ -4,14 +4,14 @@ _start:
     li sp, 0x10011000         # Stack pointer
     li t6, 0                  # Zero for comparison
     li t5, -1                 # -1 for tests
-    li a4, -1                 # a4 = 0xFFFFFFFF
+    li a4, 0x01234567               
     li s11, 0xffffffe8       # For LED/Output use
     sw a4, 8(s11)             # Turn off LED
 
 init:
     jal switchjudge
 
-    sw a4, 8(s11)             # Clear LED again
+    sw t6, 8(s11)             # Clear LED again
 
     li t1, 0xfffffff7         # Get test case index from switch (low 3 bits)
     lw a1, 0(t1)
@@ -43,7 +43,7 @@ case0:
 
     # Input b
     jal switchjudge
-    lw t3, 2(t1)
+    lw t3, 0(t1)
     sw t3, 8(s11)        # Overwrite LED with b
 
     jal init
@@ -52,8 +52,8 @@ case0:
 case1:
     jal switchjudge
     li t1, 0xfffffff9
-    lw t2, 0(t1)
-    sw t2, 12(s11)
+    lb t2, 0(t1)
+    sw t2, 8(s11)
     addi sp, sp, -4
     sw t2, 0(sp)
     jal init
@@ -62,8 +62,8 @@ case1:
 case2:
     jal switchjudge
     li t1, 0xfffffff5
-    lw t3, 0(t1)
-    sw t3, 12(s11)
+    lbu t3, 0(t1)
+    sw t3, 8(s11)
     addi sp, sp, -4
     sw t3, 0(sp)
     jal init
@@ -75,7 +75,7 @@ case3:
     beq a5, a6, LEDcase3
     jal init
 LEDcase3:
-    li a7, 1
+    li a7, 11111111
     sw a7, 8(s11)
     jal init
 
@@ -86,7 +86,7 @@ case4:
     blt a5, a6, LEDcase4
     jal init
 LEDcase4:
-    li a7, 1
+    li a7, 111111111
     sw a7, 8(s11)
     jal init
 
@@ -109,7 +109,7 @@ case6:
     bne t0, x0, LEDcase6
     jal init
 LEDcase6:
-    li a7, 1
+    li a7, 11111111
     sw a7, 8(s11)
     jal init
 
@@ -121,7 +121,7 @@ case7:
     bne t0, x0, LEDcase7
     jal init
 LEDcase7:
-    li a7, 1
+    li a7, 11111111
     sw a7, 8(s11)
     jal init
 
