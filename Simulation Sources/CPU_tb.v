@@ -22,8 +22,7 @@ module CPU_tb;
         .enter(confirmation),
         .tubSel(tubSel),
         .seg_led1234(tubLeft),
-        .seg_led5678(tubRight),
-        .instruction(instruction)
+        .seg_led5678(tubRight)
     );
 
     // Clock generation: 100MHz => 10ns period
@@ -45,9 +44,27 @@ module CPU_tb;
         reset = 1;
 
         // Observe more time
-        #1000;
+        #500;
 
-        $finish;
+        #20;
+        switchInput = 16'h0001;
+        
+        #20;
+        confirmation = 1;
+
+        #500;
+        confirmation = 0;
+
+        #40;
+        switchInput = 16'h0003;
+        
+        #500;
+        confirmation = 1;
+
+        #20;
+        confirmation = 0;
+
+        //$finish;
     end
 
 
