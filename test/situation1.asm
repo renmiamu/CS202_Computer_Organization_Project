@@ -38,12 +38,13 @@ case0:
     # Input a
     jal switchjudge
     li t1, 0xfffffff9
+    li t2, 0xfffffff5
     lw t2, 0(t1)
     sw t2, 8(s11)        # Show a
 
     # Input b
     jal switchjudge
-    lw t3, 0(t1)
+    lw t3, 0(t2)
     sw t3, 8(s11)        # Overwrite LED with b
 
     jal init
