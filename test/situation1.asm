@@ -1,7 +1,7 @@
 .text
 .globl _start
 _start:
-    li sp, 0x10011000         # Stack pointer
+    li s3, 0x00001000         # Stack pointer
     li t6, 0                  # Zero for comparison
     li t5, -1                 # -1 for tests
     li a4, 0x01234567               
@@ -55,8 +55,7 @@ case1:
     li t1, 0xfffffff9
     lb t2, 0(t1)
     sw t2, 8(s11)
-    addi sp, sp, -4
-    sw t2, 0(sp)
+    sw t2, 0(s3)
     jal init
 
 # case2: 输入 b 并压栈
@@ -65,14 +64,13 @@ case2:
     li t1, 0xfffffff5
     lbu t3, 0(t1)
     sw t3, 8(s11)
-    addi sp, sp, -4
-    sw t3, 0(sp)
+    sw t3, 4(s3)
     jal init
 
 # case3: beq 判断 a == b
 case3:
-    lw a5, 4(sp)
-    lw a6, 0(sp)
+    lw a5, 0(s3)
+    lw a6, 4(s3)
     beq a5, a6, LEDcase3
     jal init
 LEDcase3:
@@ -82,8 +80,8 @@ LEDcase3:
 
 # case4: blt a < b (signed)
 case4:
-    lw a5, 4(sp)
-    lw a6, 0(sp)
+    lw a5, 0(s3)
+    lw a6, 4(s3)
     blt a5, a6, LEDcase4
     jal init
 LEDcase4:
@@ -93,8 +91,8 @@ LEDcase4:
 
 # case5: bltu a < b (unsigned)
 case5:
-    lw a5, 4(sp)
-    lw a6, 0(sp)
+    lw a5, 0(s3)
+    lw a6, 4(s3)
     bltu a5, a6, LEDcase5
     jal init
 LEDcase5:
@@ -104,8 +102,8 @@ LEDcase5:
 
 # case6: slt a < b (signed)
 case6:
-    lw a5, 4(sp)
-    lw a6, 0(sp)
+    lw a5, 0(s3)
+    lw a6, 4(s3)
     slt t0, a5, a6
     bne t0, x0, LEDcase6
     jal init
@@ -116,8 +114,8 @@ LEDcase6:
 
 # case7: sltu a < b (unsigned)
 case7:
-    lw a5, 4(sp)
-    lw a6, 0(sp)
+    lw a5, 0(s3)
+    lw a6, 4(s3)
     sltu t0, a5, a6
     bne t0, x0, LEDcase7
     jal init
