@@ -2,7 +2,7 @@ module IO (
     input clk,
     input rst,
     input switchCtrl,
-    input [31:0]r_wdata,
+    input [31:0] r_wdata,
     input LEDCtrl,
     input [15:0] switchInput,
     input [31:0] address,
@@ -27,21 +27,36 @@ module IO (
         .dataIOInput(sw_data_out)
     );
 
-    led_control lc(
-    .clk(clk),
-    .rst(rst),
-    .LEDCtrl(LEDCtrl),
-    .r_wdata(r_wdata),
-    .dataOut(dataOut)
-    );
-
-
     assign dataIOInput = sw_data_out;
 
     reg segWrite;
+    reg ledWrite;
+    reg [15:0] ledReg;  // ✅ 添加寄存器保持 LED 状态
+
+    assign dataOut = ledReg; // ✅ 始终输出保持的 LED 值
+
+    // 数码管数据寄存器
     reg [3:0] s1, s2, s3, s4, s5, s6, s7, s8;
     wire [7:0] led1, led2, led3, led4, led5, led6, led7, led8;
 
+    // 写入判断
+    always @(*) begin
+        segWrite = (address == 32'hffff_fff0);
+        ledWrite = (address == 32'hffff_ffc2);
+    end
+
+    // ✅ LED 保持显示逻辑
+    always @(posedge clk or negedge rst) begin
+        if (!rst)begin
+            ledReg <= 16'b0;
+        end else if (ledWrite)begin
+            ledReg <= writeData[15:0];
+        end else begin
+            ledReg <= ledReg;
+        end    
+    end
+
+    // ✅ 数码管保持逻辑
     always @(posedge clk or negedge rst) begin
         if (!rst) begin
             s1 <= 4'd0; s2 <= 4'd0; s3 <= 4'd0; s4 <= 4'd0;
@@ -63,10 +78,11 @@ module IO (
             s5 <= s5;
             s6 <= s6;
             s7 <= s7;
-            s8 <= s8;            
+            s8 <= s8;
         end
     end
 
+    // Tub 控制
     TubControl tub1(.data(s1), .lightSegment(led1));
     TubControl tub2(.data(s2), .lightSegment(led2));
     TubControl tub3(.data(s3), .lightSegment(led3));
@@ -76,6 +92,7 @@ module IO (
     TubControl tub7(.data(s7), .lightSegment(led7));
     TubControl tub8(.data(s8), .lightSegment(led8));
 
+    // Tub 显示模块
     Tub tub (
         .clk(clk),
         .tub1(led1),
@@ -90,12 +107,5 @@ module IO (
         .tubLeft(tubLeft),
         .tubRight(tubRight)
     );
-
-    always @(*) begin
-        if (address == 32'hffff_fff0)
-            segWrite = 1'b1;
-        else
-            segWrite = 1'b0;
-    end
 
 endmodule
