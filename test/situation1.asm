@@ -3,16 +3,16 @@
 _start:
     li s3, 0x00001000         # Stack pointer
     li t6, 0                  # Zero for comparison
-    li t5, -1                 # -1 for tests
-    li a4, 0x01234567               
-    li s11, 0xffffffe8       # For LED/Output use
-    sw a4, 8(s11)             # Turn off LED
+    li t5, -1                 # -1 for tests               
+    li s11, 0xffffffe8       # 数码管
+    li s10, 0xffffffc2       # led
+    sw t6, 8(s11)             # Turn off LED
 
 init:
     jal switchjudge
 
-    sw t6, 8(s11)             # Clear LED again
-
+    sw zero, 8(s11)            
+    sw zero 0(s10)	      # Clear LED again
     li t1, 0xfffffff7         # Get test case index from switch (low 3 bits)
     lw a1, 0(t1)
 
@@ -37,15 +37,15 @@ init:
 case0:
     # Input a
     jal switchjudge
-    li t1, 0xfffffff9
-    li t2, 0xfffffff5
-    lw t2, 0(t1)
-    sw t2, 8(s11)        # Show a
+    li s1, 0xfffffff9
+    li s2, 0xfffffff5
+    lw t2, 0(s1)
+    sw t2, 0(s10)        # Show a
 
     # Input b
     jal switchjudge
-    lw t3, 0(t2)
-    sw t3, 8(s11)        # Overwrite LED with b
+    lw t3, 0(s2)
+    sw t3, 0(s10)        # Overwrite LED with b
 
     jal init
 
@@ -72,10 +72,11 @@ case3:
     lw a5, 0(s3)
     lw a6, 4(s3)
     beq a5, a6, LEDcase3
+    sw zero, 0(s10)
     jal init
 LEDcase3:
-    li a7, 11111111
-    sw a7, 8(s11)
+    addi a7, zero,0xff
+    sw a7, 0(s10)
     jal init
 
 # case4: blt a < b (signed)
@@ -83,10 +84,11 @@ case4:
     lw a5, 0(s3)
     lw a6, 4(s3)
     blt a5, a6, LEDcase4
+    sw zero, 0(s10)
     jal init
 LEDcase4:
-    li a7, 111111111
-    sw a7, 8(s11)
+     addi a7, zero,0xff
+    sw a7, 0(s10)
     jal init
 
 # case5: bltu a < b (unsigned)
@@ -94,10 +96,11 @@ case5:
     lw a5, 0(s3)
     lw a6, 4(s3)
     bltu a5, a6, LEDcase5
+    sw zero, 0(s10)
     jal init
 LEDcase5:
-    li a7, 1
-    sw a7, 8(s11)
+    addi a7, zero,0xff
+    sw a7, 0(s10)
     jal init
 
 # case6: slt a < b (signed)
@@ -106,10 +109,11 @@ case6:
     lw a6, 4(s3)
     slt t0, a5, a6
     bne t0, x0, LEDcase6
+    sw zero, 0(s10)
     jal init
 LEDcase6:
-    li a7, 11111111
-    sw a7, 8(s11)
+    addi a7, zero,0xff
+    sw a7, 0(s10)
     jal init
 
 # case7: sltu a < b (unsigned)
@@ -118,10 +122,11 @@ case7:
     lw a6, 4(s3)
     sltu t0, a5, a6
     bne t0, x0, LEDcase7
+    sw zero, 0(s10)
     jal init
 LEDcase7:
-    li a7, 11111111
-    sw a7, 8(s11)
+    addi a7, zero,0xff
+    sw a7, 0(s10)
     jal init
 
 # switchjudge: 等待按钮按下+释放
