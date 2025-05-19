@@ -79,6 +79,12 @@ always @(*) begin
                     ALUop=4'b0111;        //sra
                     sftmd=1'b1;
                 end
+                10'b010_0000000:begin     //slt
+                    ALUop=4'b1000;
+                end
+                10'b011_0000000:begin     //sltu
+                    ALUop=4'b1001;
+                end
             endcase
         end
         //I-type-1
