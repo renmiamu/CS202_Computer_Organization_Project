@@ -81,9 +81,11 @@ always @(*) begin
                 end
                 10'b010_0000000:begin     //slt
                     ALUop=4'b1000;
+                    RegWrite=1'b1;
                 end
                 10'b011_0000000:begin     //sltu
                     ALUop=4'b1001;
+                    RegWrite=1'b1;
                 end
             endcase
         end
