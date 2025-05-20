@@ -52,7 +52,7 @@ case0:
 # case1: 输入 a 并压栈
 case1:
     jal switchjudge
-    li t1, 0xfffffff9
+    li t1, 0xfffffff5
     lb t2, 0(t1)
     sw t2, 8(s11)
     sw t2, 0(s3)
@@ -61,7 +61,7 @@ case1:
 # case2: 输入 b 并压栈
 case2:
     jal switchjudge
-    li t1, 0xfffffff5
+    li t1, 0xfffffff9
     lbu t3, 0(t1)
     sw t3, 8(s11)
     sw t3, 4(s3)
