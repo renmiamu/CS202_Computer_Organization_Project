@@ -8,9 +8,9 @@ module IFetch (
     input jalr,
     input [31:0] Alu_result,
     output wire [31:0] instruction,
+    output reg [31:0] pc,  // 当前指令对应的PC
     output reg [31:0] pc_out  // 保存当前指令对应的PC
 );
-reg [31:0] pc;
 reg [31:0] next_pc;
 wire [31:0] pc_plus_4 = pc + 4;
 

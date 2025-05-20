@@ -10,6 +10,7 @@ module ALU (
     input Branch_geu,
     input [31:0] read_data_1,
     input [31:0] read_data_2,
+    input [31:0] pc,
     input [31:0] imm32,
     output reg [31:0] Alu_result,
     output reg zero,
@@ -107,8 +108,11 @@ always @(*) begin
                 branch_result=1'b1;
             end
         end
-        13'b1000_1_0_0_0_0_0_0_0_1:begin
+        13'b1000_1_0_0_0_0_0_0_0_1:begin       //lui
             Alu_result=imm32;
+        end
+        13'b1001_1_0_0_0_0_0_0_0_1:begin       //auipc
+            Alu_result=pc+imm32;
         end
     endcase
     if (Alu_result=={32{1'b0}})begin

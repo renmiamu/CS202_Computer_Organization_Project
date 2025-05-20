@@ -49,7 +49,7 @@ module CPU (
     wire IORead, IOWrite;
     wire [3:0] ALUop;
 
-    wire [31:0] pc_current;
+    wire [31:0] pc_current, pc;
     
     wire [31:0] instruction;
 
@@ -64,6 +64,7 @@ module CPU (
         .jalr(jalr),
         .Alu_result(Alu_result),
         .instruction(instruction),
+        .pc(pc),
         .pc_out(pc_current)
     );
 

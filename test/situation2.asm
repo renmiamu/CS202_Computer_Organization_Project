@@ -3,7 +3,7 @@
 
 
 _start:
-    li s3, 0x00001000                  # ³õÊ¼»¯s3£¨memory£©
+    li s3, 0x00001000                  # ï¿½ï¿½Ê¼ï¿½ï¿½s3ï¿½ï¿½memoryï¿½ï¿½
     li s11, 0xfffffff0
     li s10, 0xffffffc2       
 
@@ -13,7 +13,7 @@ init:
     sw zero, 0(s11)            
     sw zero 0(s10)	      # Clear LED again
     li t1, 0xfffffff7             # SWITCH_CASE_ADDR
-    lw a1, 0(t1)                  # ¶ÁÈ¡²âÊÔ±àºÅ
+    lw a1, 0(t1)                  # ï¿½ï¿½È¡ï¿½ï¿½ï¿½Ô±ï¿½ï¿½
 
     beq a1, zero, case0
     addi a1, a1, -1
@@ -32,16 +32,16 @@ init:
     beq a1, zero, case7
     jal _start
 
-case0: #·´×ª
+case0: #ï¿½ï¿½×ª
     jal switchjudge
     li t1, 0xfffffff9
     lw t2, 0(t1)
     jal bit_reverse
-    sw t2, 0(s10)        # ÐèÐÞ¸ÄÎªLED_ADDR 
+    sw t2, 0(s10)        # ï¿½ï¿½ï¿½Þ¸ï¿½ÎªLED_ADDR 
     jal init
 
 
-case1: # »ØÎÄ¼ì²â
+case1: # ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½
     jal switchjudge
     li t1, 0xfffffff9
     lw t2, 0(t1)
@@ -49,39 +49,39 @@ case1: # »ØÎÄ¼ì²â
     jal bit_reverse
     bne t2, t3, not_palindrome
     li t4, 1
-    sw t4, 0(s10)   #ÐèÐÞ¸ÄÎªledµØÖ·
-    jal _start
+    sw t4, 0(s10)   #ï¿½ï¿½ï¿½Þ¸ï¿½Îªledï¿½ï¿½Ö·
+    jal init
 not_palindrome:
-    sw zero, 0(s10)  #ÐèÐÞ¸ÄÎªledµØÖ·
+    sw zero, 0(s10)  #ï¿½ï¿½ï¿½Þ¸ï¿½Îªledï¿½ï¿½Ö·
     jal init
 
 
 case2:
-    # µÚÒ»¸ö¸¡µãÊýÊäÈë
-    jal switchjudge          # µÈ´ýÈ·ÈÏ
+    # ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    jal switchjudge          # ï¿½È´ï¿½È·ï¿½ï¿½
     li t1, 0xfffffff9        # SWITCH_DATA_ADDR
-    lw t2, 0(t1)             # t2 = ÊäÈëµÄ¸ß8Î»
-    sw t2, 0(s3)        # ´æ´¢¸¡µãÊýµ½ memory[a]
+    lw t2, 0(t1)             # t2 = ï¿½ï¿½ï¿½ï¿½Ä¸ï¿½8Î»
+    sw t2, 0(s3)        # ï¿½æ´¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ memory[a]
     jal decode_float8
-    sw a0, 0(s11)        # Í¬²½ÏÔÊ¾µ½ÊýÂë¹Üa
+    sw a0, 0(s11)        # Í¬ï¿½ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½a
 
-    # µÚ¶þ¸ö¸¡µãÊýÊäÈë
+    # ï¿½Ú¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     jal switchjudge
     lw t2, 0(t1)
-    sw t2, 4(s3)        # ´æ´¢¸¡µãÊýµ½ memory[b]
+    sw t2, 4(s3)        # ï¿½æ´¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ memory[b]
     jal decode_float8
-    sw a0, 0(s11)        # Í¬²½ÏÔÊ¾µ½ LED »òÊýÂë¹Üb
+    sw a0, 0(s11)        # Í¬ï¿½ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½ LED ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½b
     jal init
 decode_float8:
-    srli t0, t2, 7          # t0 = ·ûºÅÎ»
+    srli t0, t2, 7          # t0 = ï¿½ï¿½ï¿½ï¿½Î»
     andi t1, t2, 0x70       # t1 = exp_raw << 4
     srli t1, t1, 4          # t1 = exp_raw
-    andi t2, t2, 0x0F       # t2 = Î²Êý£¨×¢ÒâÕâÀï»á¸²¸ÇÊäÈë£©
+    andi t2, t2, 0x0F       # t2 = Î²ï¿½ï¿½ï¿½ï¿½×¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½á¸²ï¿½ï¿½ï¿½ï¿½ï¿½ë£©
 
     li t3, 3
     sub t1, t1, t3          # t1 = exp - 3
     mv a0, t2               # a0 = mantissa
-    li t2, 0                # ×÷Îª shift counter£¨¿ÉÓÃ t2 ÏÖÔÚËüÎÞÓÃÁË£©
+    li t2, 0                # ï¿½ï¿½Îª shift counterï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ t2 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë£ï¿½
 
 shift_loop8:
     beq t2, t1, shift_done8
@@ -90,8 +90,8 @@ shift_loop8:
     j shift_loop8
 
 shift_done8:
-    beqz t0, decode_end8    # Èç¹û·ûºÅÎª0£¬Ìø¹ý
-    sub a0, zero, a0        # ·ñÔò a0 = -a0
+    beqz t0, decode_end8    # ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îª0ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    sub a0, zero, a0        # ï¿½ï¿½ï¿½ï¿½ a0 = -a0
 decode_end8:
     jr ra
 
@@ -117,87 +117,87 @@ case4:
     slli t3, t3, 4
     jal crc4_calc
     or t4, t3, t2
-    sw t4, 0(s10) #¸ÄÎªled
+    sw t4, 0(s10) #ï¿½ï¿½Îªled
     jal init
     
-# ÊäÈë£ºt2 = 4-bit Ô­Ê¼Êý¾Ý£¨µÍ4Î»ÓÐÐ§£©
-# Êä³ö£ºt2 = 4-bit CRCÐ£ÑéÂë£¨µÍ4Î»£©
+# ï¿½ï¿½ï¿½ë£ºt2 = 4-bit Ô­Ê¼ï¿½ï¿½ï¿½Ý£ï¿½ï¿½ï¿½4Î»ï¿½ï¿½Ð§ï¿½ï¿½
+# ï¿½ï¿½ï¿½ï¿½ï¿½t2 = 4-bit CRCÐ£ï¿½ï¿½ï¿½ë£¨ï¿½ï¿½4Î»ï¿½ï¿½
 crc4_calc:
-    slli t2, t2, 4       # Êý¾Ý×óÒÆ4Î»£¬¹¹Ôì8Î»±»³ýÊý
-    li t3, 0x13          # CRC-4¶àÏîÊ½ 0b10011
-    li t4, 4             # ¾«È·³ý4Î»¼´¿É£¨ÒòÎª×î¶à4´ÎÒì»ò£©
+    slli t2, t2, 4       # ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½4Î»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½8Î»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    li t3, 0x13          # CRC-4ï¿½ï¿½ï¿½ï¿½Ê½ 0b10011
+    li t4, 4             # ï¿½ï¿½È·ï¿½ï¿½4Î»ï¿½ï¿½ï¿½É£ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½4ï¿½ï¿½ï¿½ï¿½ï¿½
 
 crc_loop:
-    srl t5, t2, 7        # ÌáÈ¡µ±Ç°×î¸ßÎ»£¨µÚ8Î»£©
-    beqz t5, skip_xor    # Èç¹û×î¸ßÎ»ÊÇ0£¬²»×öÒì»ò
-    xor t2, t2, t3 << 3  # ½«0x13×óÒÆ¶ÔÆë£¬×öÒì»ò
+    srl t5, t2, 7        # ï¿½ï¿½È¡ï¿½ï¿½Ç°ï¿½ï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½8Î»ï¿½ï¿½
+    beqz t5, skip_xor    # ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½0ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    xor t2, t2, t3 << 3  # ï¿½ï¿½0x13ï¿½ï¿½ï¿½Æ¶ï¿½ï¿½ë£¬ï¿½ï¿½ï¿½ï¿½ï¿½
 skip_xor:
     slli t2, t2, 1
     addi t4, t4, -1
     bnez t4, crc_loop
 
-    srli t2, t2, 4       # CRCÎ»ÔÚµÍ4Î»£¬ÓÒÒÆÌáÈ¡
+    srli t2, t2, 4       # CRCÎ»ï¿½Úµï¿½4Î»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¡
     andi t2, t2, 0xF
     jr ra
 
 case5:
     jal switchjudge
     li t1, 0xfffffff9
-    lw t2, 0(t1)          # ¶ÁÈ¡ÊäÈëÊý¾Ý£¨8Î»£©
+    lw t2, 0(t1)          # ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý£ï¿½8Î»ï¿½ï¿½
 
-    mv t3, t2             # ±¸·ÝÔ­Êý¾Ý
-    jal crc4_check        # Ð£Ñé CRC£º½á¹û±£´æÔÚ t2
+    mv t3, t2             # ï¿½ï¿½ï¿½ï¿½Ô­ï¿½ï¿½ï¿½ï¿½
+    jal crc4_check        # Ð£ï¿½ï¿½ CRCï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ t2
 
-    bnez t2, crc_fail     # Èç¹ûÓàÊý·Ç0 ¡ú Ð£ÑéÊ§°Ü
+    bnez t2, crc_fail     # ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½0 ï¿½ï¿½ Ð£ï¿½ï¿½Ê§ï¿½ï¿½
 
     li t4, 1
-    sw t4, 0(s10)        # Ð£ÑéÍ¨¹ý ¡ú µãÁÁLED
+    sw t4, 0(s10)        # Ð£ï¿½ï¿½Í¨ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½LED
     jal init
 
 crc_fail:
-    sw zero, 0(s10)      # Ð£ÑéÊ§°Ü ¡ú Ï¨ÃðLED
+    sw zero, 0(s10)      # Ð£ï¿½ï¿½Ê§ï¿½ï¿½ ï¿½ï¿½ Ï¨ï¿½ï¿½LED
     jal init
 
 
 crc4_check:
-    li t3, 0x13          # CRC-4 ¶àÏîÊ½
-    li t4, 8             # ÐèÒª×ö8ÂÖ³ý·¨
+    li t3, 0x13          # CRC-4 ï¿½ï¿½ï¿½ï¿½Ê½
+    li t4, 8             # ï¿½ï¿½Òªï¿½ï¿½8ï¿½Ö³ï¿½ï¿½ï¿½
 
 crc_check_loop:
-    srl t5, t2, 7        # ÌáÈ¡×î¸ßÎ»
+    srl t5, t2, 7        # ï¿½ï¿½È¡ï¿½ï¿½ï¿½Î»
     beqz t5, crc_skip
-    xor t2, t2, t3 << 3  # ×ó¶ÔÆë¶àÏîÊ½£¬×öÒì»ò
+    xor t2, t2, t3 << 3  # ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 crc_skip:
     slli t2, t2, 1
     addi t4, t4, -1
     bnez t4, crc_check_loop
 
-    srli t2, t2, 4       # È¡×îÖÕÓàÊý
+    srli t2, t2, 4       # È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     andi t2, t2, 0xF
     jr ra
 
 
 case6:
     lui t0, 0x12345      # t0 = 0x12345000
-    srli t1, t0, 12      # ÓÒÒÆ12Î»£¬t1Ó¦Îª0x12345
+    srli t1, t0, 12      # ï¿½ï¿½ï¿½ï¿½12Î»ï¿½ï¿½t1Ó¦Îª0x12345
     li s11, 0xfffffff0
-    sw t1, 0(s11)        # Êä³ö¸ßÎ»µ½ LED
+    sw t1, 0(s11)        # ï¿½ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½ LED
     jal init
 
 
 
 case7:
     auipc t0, 0          # t0 = PC
-    addi t0, t0, 16      # t0 Ö¸ÏòºóÃæ label_jalr
-    jal ra, label_jal    # Ìø×ªÖ´ÐÐ jal ²âÊÔ£¬ra = ÏÂÒ»ÌõÖ¸ÁîµØÖ·
+    addi t0, t0, 16      # t0 Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½ label_jalr
+    jal ra, label_jal    # ï¿½ï¿½×ªÖ´ï¿½ï¿½ jal ï¿½ï¿½ï¿½Ô£ï¿½ra = ï¿½ï¿½Ò»ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½Ö·
 
 label_jalr:
     li s11, 0xffffffe8
-    sw ra, 0(s11)        # ½« ra Ð´µ½ LED ÏÔÊ¾£¬ÑéÖ¤ jal ÉèÖÃÕýÈ·
+    sw ra, 0(s11)        # ï¿½ï¿½ ra Ð´ï¿½ï¿½ LED ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½Ö¤ jal ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È·
     jal init
 
 label_jal:
-    jalr zero, t0, 0     # ÓÃ jalr ·µ»Øµ½ label_jalr
+    jalr zero, t0, 0     # ï¿½ï¿½ jalr ï¿½ï¿½ï¿½Øµï¿½ label_jalr
 
 
 
