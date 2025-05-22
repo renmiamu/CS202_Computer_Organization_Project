@@ -76,7 +76,7 @@ always @(*) begin
             Alu_result=$signed(read_data_1) >>> imm32;
         end
         13'b0110_1_1_0_0_0_0_0_0_1:begin        //srli
-            Alu_result=read_data_1>>imm32;
+            Alu_result=read_data_1>>imm32[4:0];
         end
         13'b0000_0_0_1_0_0_0_0_0_0:begin        //beq
             if (read_data_1==read_data_2) begin
