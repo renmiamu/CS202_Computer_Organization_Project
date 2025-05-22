@@ -31,6 +31,7 @@ module IO (
 
     reg segWrite;
     reg ledWrite;
+    reg segDecimalWrite;
     reg [15:0] ledReg;  // ✅ 添加寄存器保持 LED 状态
 
     assign dataOut = ledReg; // ✅ 始终输出保持的 LED 值
@@ -43,6 +44,7 @@ module IO (
     always @(*) begin
         segWrite = (address == 32'hffff_fff0);
         ledWrite = (address == 32'hffff_ffc2);
+        segDecimalWrite = (address == 32'hffff_ffc4);
     end
 
     // ✅ LED 保持显示逻辑
@@ -56,6 +58,7 @@ module IO (
         end    
     end
 
+    reg [31:0] tmp;  // 临时变量用于十进制转换
     // ✅ 数码管保持逻辑
     always @(posedge clk or negedge rst) begin
         if (!rst) begin
@@ -70,6 +73,16 @@ module IO (
             s6 <= writeData[11:8];
             s7 <= writeData[7:4];
             s8 <= writeData[3:0];
+        end else if (segDecimalWrite) begin
+            tmp=writeData;
+            s8 <= tmp % 10; tmp = tmp / 10;
+            s7 <= tmp % 10; tmp = tmp / 10;
+            s6 <= tmp % 10; tmp = tmp / 10;
+            s5 <= tmp % 10; tmp = tmp / 10;
+            s4 <= tmp % 10; tmp = tmp / 10;
+            s3 <= tmp % 10; tmp = tmp / 10;
+            s2 <= tmp % 10; tmp = tmp / 10;
+            s1 <= tmp % 10;
         end else begin
             s1 <= s1;
             s2 <= s2;
