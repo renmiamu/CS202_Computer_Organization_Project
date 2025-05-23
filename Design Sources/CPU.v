@@ -33,7 +33,7 @@ module CPU (
         .clk_in1(clk),
         .clk_out1(clk_divided),
         .clk_out2(upg_clk)
-    );
+    );     
 
     // ---------- 中间信号 ----------
     wire [15:0] io_rdata;
@@ -62,38 +62,44 @@ module CPU (
     wire [31:0] instruction;
     wire a7;
     
-    // UART 编程控制模块（IP核）
-    wire        upg_wen;
-    wire [14:0] upg_adr;
-    wire [31:0] upg_dat;
-    wire        upg_done;
-    
-    // BUFG 生成的同步复位信号（防止毛刺）
+    wire upg_clk, upg_clk_o;
+    wire upg_wen_o;      //Uart write out enable
+    wire upg_done_o;     //Uart rx data have done
+    //data to which  memory unit of program_rom/dmemory32 
+    wire [14:0] upg_adr_o;     
+    //data to program_rom or dmemory32 
+    wire [31:0] upg_dat_o; 
+
     wire spg_bufg;
+        
+    // de-twitter
     BUFG U1 (.I(start_pg), .O(spg_bufg));
     
-    // UART reset 逻辑
     reg upg_rst;
+    // UART编程复位信号
     always @(posedge clk) begin
-        if (reset)          upg_rst <= 1;
-        else if (spg_bufg) upg_rst <= 0;
+        if (spg_bufg) begin
+            upg_rst <= 0;           // UART编程复位信号
+        end
+        else begin
+            upg_rst <= 1;           // UART编程复位信号
+        end
     end
-    
-    uart_bmpg_0 uart_prog (
-        .upg_clk_i(clk_out2),   // 你分频后提供的10MHz时钟
-        .upg_rst_i(upg_rst),
-        .upg_rx_i(rx),
-        .upg_clk_o(upg_clk),
-        .upg_wen_o(upg_wen),
-        .upg_adr_o(upg_adr),
-        .upg_dat_o(upg_dat),
-        .upg_done_o(upg_done),
-        .upg_tx_o(tx)
-    );
 
-    
-    wire rst = reset | ~upg_rst;
-    wire kickOff = upg_rst | (~upg_rst & upg_done);
+    wire rst;      
+    assign rst = fpga_rst | !upg_rst;
+
+    uart_bmpg_0 uart_prog (
+        .upg_clk_i   (upg_clk),      // 分频后的10MHz时钟
+        .upg_rst_i   (upg_rst),      // UART复位信号（由 start_pg 生成）
+        .upg_rx_i    (rx),           // 串口接收引脚
+        .upg_clk_o   (upg_clk_o),    // 输出给其他模块（如 RAM）
+        .upg_wen_o   (upg_wen_o),    // 写使能
+        .upg_adr_o   (upg_adr_o),    // 写地址（高位用于区分 program/data）
+        .upg_dat_o   (upg_dat_o),    // 写数据
+        .upg_done_o  (upg_done_o),   // 写入完成标志
+        .upg_tx_o    (tx)            // 串口发送引脚（可用于回显等）
+    );
 
 
     // ---------- IF ----------
@@ -108,11 +114,11 @@ module CPU (
         .Alu_result(Alu_result),
     
         .upg_rst(upg_rst),
-        .upg_clk(upg_clk),
-        .upg_wen_o(upg_wen),
-        .upg_adr_o(upg_adr),
-        .upg_dat_o(upg_dat),
-        .upg_done_o(upg_done),
+        .upg_clk(upg_clk_o),
+        .upg_wen_o(upg_wen_o),
+        .upg_adr_o(upg_adr_o),
+        .upg_dat_o(upg_dat_o),
+        .upg_done_o(upg_done_o),
     
         .instruction(instruction),
         .pc_out(pc_current)
@@ -184,11 +190,11 @@ module CPU (
         .d_out(mem_rdata),
     
         .upg_rst_i(upg_rst),
-        .upg_clk_i(upg_clk),
-        .upg_wen_i(upg_wen),
-        .upg_adr_i(upg_adr[13:0]),
-        .upg_dat_i(upg_dat),
-        .upg_done_i(upg_done)
+        .upg_clk_i(upg_clk_o),
+        .upg_wen_i(upg_wen_o & upg_adr_o[14]),
+        .upg_adr_i(upg_adr_o[13:0]),
+        .upg_dat_i(upg_dat_o),
+        .upg_done_i(upg_done_o)
     );
 
     // ---------- 内存和IO仲裁器 ----------
