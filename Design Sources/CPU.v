@@ -59,6 +59,7 @@ module CPU (
     wire [31:0] pc_current;
     
     wire [31:0] instruction;
+    wire a7;
     
     // UART 编程控制模块（IP核）
     wire        upg_clk, upg_wen;
@@ -120,6 +121,7 @@ module CPU (
     instruction_control ctrl (
         .instruction(instruction),
         .Alu_result(Alu_result),
+        .a7(a7),
         .nBranch(nBranch),
         .Branch(Branch),
         .branch_lt(branch_lt),
@@ -148,7 +150,8 @@ module CPU (
         .RegWrite(RegWrite),
         .read_data_1(read_data_1),
         .read_data_2(read_data_2),
-        .imm32(imm32)
+        .imm32(imm32),
+        .a7(a7)
     );
 
     // ---------- ALU ----------
