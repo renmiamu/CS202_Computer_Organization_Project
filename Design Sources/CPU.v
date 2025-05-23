@@ -15,7 +15,8 @@ module CPU (
     output [3:0] g,
     output [3:0] b,
     output hs,
-    output vs
+    output vs,
+    output demo
 //    output [31:0] instruction,
 //    output branch_result,
 //    output Branch,
@@ -26,12 +27,12 @@ module CPU (
 //    output [31:0] Alu_result
 );
     wire clk_divided;
-    wire clk_out2;
+    wire upg_clk;
 
     cpuclk clk_divider (
         .clk_in1(clk),
         .clk_out1(clk_divided),
-        .clk_out2(clk_out2)
+        .clk_out2(upg_clk)
     );
 
     // ---------- 中间信号 ----------
@@ -61,7 +62,7 @@ module CPU (
     wire [31:0] instruction;
     
     // UART 编程控制模块（IP核）
-    wire        upg_clk, upg_wen;
+    wire        upg_wen;
     wire [14:0] upg_adr;
     wire [31:0] upg_dat;
     wire        upg_done;
@@ -232,4 +233,5 @@ module CPU (
         .dataOut(dataOut)
     );
 
+assign demo = start_pg;
 endmodule

@@ -14,19 +14,22 @@ module Data_mem (
     input  [31:0] upg_dat_i,    // UART 写数据
     input         upg_done_i    // UART 完成标志
 );
-
+    
+    wire ram_clk = clk;
     // 模式切换信号：为1时 CPU 正常工作，为0时 UART 编程中
     wire kickOff = upg_rst_i | (~upg_rst_i & upg_done_i);
-
-    // 时钟、写使能、地址、写数据，按模式多路选择
-    wire ram_clk  = kickOff ? ~clk        : upg_clk_i;    // 注意 clk 为负边沿时钟
-    wire ram_we   = kickOff ? m_write     : upg_wen_i;
+    
     wire [13:0] ram_addr = kickOff ? addr[15:2] : upg_adr_i;
+        
     wire [31:0] ram_data = kickOff ? d_in        : upg_dat_i;
+    // 时钟、写使能、地址、写数据，按模式多路选择
+    wire ram_we   = kickOff ? m_write     : upg_wen_i;
+    
+    
 
     // RAM 实例（建议使用 IP Catalog 生成的单端口 RAM）
     RAM udram (
-        .clka   (ram_clk),
+        .clka   (~ram_clk),
         .wea    (ram_we),
         .addra  (ram_addr),
         .dina   (ram_data),
