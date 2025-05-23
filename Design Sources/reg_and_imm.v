@@ -6,7 +6,8 @@ module reg_and_imm (
     input RegWrite,
     output reg [31:0] read_data_1,
     output reg [31:0] read_data_2,
-    output reg [31:0] imm32
+    output reg [31:0] imm32,
+    output a7
 );
 reg [31:0] registers [0:31];
 wire [4:0] rs1;
@@ -18,6 +19,7 @@ assign rs1=inst[19:15];
 assign rs2=inst[24:20];
 assign rd=inst[11:7];
 assign opcode=inst[6:0];
+assign a7=registers[17][0];
 
 always @(posedge clk ) begin
     if (!rst) begin

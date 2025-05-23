@@ -1,6 +1,7 @@
 module instruction_control (
     input [31:0] instruction,
     input [31:0] Alu_result,
+    input a7,
     output reg nBranch,
     output reg Branch,
     output reg branch_lt,
@@ -47,6 +48,7 @@ always @(*) begin
     IOWrite=1'b0;
     jal=1'b0;
     jalr=1'b0;
+    ecall=1'b0;
     case(opcode)
         //R-type
         7'b0110011:begin
@@ -187,6 +189,21 @@ always @(*) begin
             RegWrite = 1'b1;
             ALUSrc=1'b1;
             ALUop = 4'b1001; //PC + 高位立即数
+        end
+
+        //ecall
+        7'b1110011: begin
+            if (~a7) begin
+                ALUSrc=1'b1;
+                MemorIOToReg=1'b1;
+                RegWrite=1'b1;
+                ALUop=4'b0000;
+                IORead=1'b1;
+            end else begin
+                ALUSrc=1'b1;
+                ALUop=4'b0000;
+                MemWrite=1'b1;
+                end
         end
     endcase
 end
