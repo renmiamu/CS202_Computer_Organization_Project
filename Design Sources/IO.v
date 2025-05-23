@@ -42,7 +42,7 @@ module IO (
     assign dataOut = ledReg; // ? 始终输出保持的 LED 值
 
     // 数码管数据寄存器
-    reg [3:0] s1, s2, s3, s4, s5, s6, s7, s8;
+    reg [4:0] s1, s2, s3, s4, s5, s6, s7, s8;
     wire [7:0] led1, led2, led3, led4, led5, led6, led7, led8;
 
     // 写入判断
@@ -50,6 +50,7 @@ module IO (
         segWrite = (address == 32'hffff_fff0);
         ledWrite = (address == 32'hffff_ffc2);
         segDecimalWrite = (address == 32'hffff_ffc4);
+        segDecimalNegWrite = (address == 32'hffff_ffc6)
     end
 
     // ? LED 保持显示逻辑
@@ -67,17 +68,17 @@ module IO (
     // ? 数码管保持逻辑
     always @(posedge clk or negedge rst) begin
         if (!rst) begin
-            s1 <= 4'd0; s2 <= 4'd0; s3 <= 4'd0; s4 <= 4'd0;
-            s5 <= 4'd0; s6 <= 4'd0; s7 <= 4'd0; s8 <= 4'd0;
+            s1 <= 5'd0; s2 <= 5'd0; s3 <= 5'd0; s4 <= 5'd0;
+            s5 <= 5'd0; s6 <= 5'd0; s7 <= 5'd0; s8 <= 5'd0;
         end else if (segWrite) begin
-            s1 <= writeData[31:28];
-            s2 <= writeData[27:24];
-            s3 <= writeData[23:20];
-            s4 <= writeData[19:16];
-            s5 <= writeData[15:12];
-            s6 <= writeData[11:8];
-            s7 <= writeData[7:4];
-            s8 <= writeData[3:0];
+            s1 <= {1'b0,writeData[31:28]};
+            s2 <= {1'b0,writeData[27:24]};
+            s3 <= {1'b0,writeData[23:20]};
+            s4 <= {1'b0,writeData[19:16]};
+            s5 <= {1'b0,writeData[15:12]};
+            s6 <= {1'b0,writeData[11:8]};
+            s7 <= {1'b0,writeData[7:4]};
+            s8 <= {1'b0,writeData[3:0]};
         end else if (segDecimalWrite) begin
             tmp=writeData;
             s8 <= tmp % 10; tmp = tmp / 10;
@@ -88,7 +89,18 @@ module IO (
             s3 <= tmp % 10; tmp = tmp / 10;
             s2 <= tmp % 10; tmp = tmp / 10;
             s1 <= tmp % 10;
-        end else begin
+        end else if (segDecimalNegWrite)begin
+            tmp=writeData;
+            s8 <= tmp % 10; tmp = tmp / 10;
+            s7 <= tmp % 10; tmp = tmp / 10;
+            s6 <= tmp % 10; tmp = tmp / 10;
+            s5 <= tmp % 10; tmp = tmp / 10;
+            s4 <= tmp % 10; tmp = tmp / 10;
+            s3 <= tmp % 10; tmp = tmp / 10;
+            s2 <= tmp % 10; tmp = tmp / 10;
+            s1 <= 5'b10000;
+        end
+        else begin
             s1 <= s1;
             s2 <= s2;
             s3 <= s3;
