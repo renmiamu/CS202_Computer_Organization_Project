@@ -12,7 +12,12 @@ module IO (
     output [7:0] tubSel,
     output [7:0] tubLeft,
     output [7:0] tubRight,
-    output [15:0] dataOut
+    output [15:0] dataOut,
+    output [3:0] r,
+    output [3:0] g,
+    output [3:0] b,
+    output hs,
+    output vs
 );
 
     wire [15:0] sw_data_out;
@@ -32,9 +37,9 @@ module IO (
     reg segWrite;
     reg ledWrite;
     reg segDecimalWrite;
-    reg [15:0] ledReg;  // ✅ 添加寄存器保持 LED 状态
+    reg [15:0] ledReg;  // ? 添加寄存器保持 LED 状态
 
-    assign dataOut = ledReg; // ✅ 始终输出保持的 LED 值
+    assign dataOut = ledReg; // ? 始终输出保持的 LED 值
 
     // 数码管数据寄存器
     reg [3:0] s1, s2, s3, s4, s5, s6, s7, s8;
@@ -47,7 +52,7 @@ module IO (
         segDecimalWrite = (address == 32'hffff_ffc4);
     end
 
-    // ✅ LED 保持显示逻辑
+    // ? LED 保持显示逻辑
     always @(posedge clk or negedge rst) begin
         if (!rst)begin
             ledReg <= 16'b0;
@@ -59,7 +64,7 @@ module IO (
     end
 
     reg [31:0] tmp;  // 临时变量用于十进制转换
-    // ✅ 数码管保持逻辑
+    // ? 数码管保持逻辑
     always @(posedge clk or negedge rst) begin
         if (!rst) begin
             s1 <= 4'd0; s2 <= 4'd0; s3 <= 4'd0; s4 <= 4'd0;
@@ -121,4 +126,13 @@ module IO (
         .tubRight(tubRight)
     );
 
+    // VGA 显示模块
+    vga display (
+    .clk(clk),
+    .rst(rst),
+    .s1(s1), .s2(s2), .s3(s3), .s4(s4),
+    .s5(s5), .s6(s6), .s7(s7), .s8(s8),
+    .r(r), .g(g), .b(b),
+    .hs(hs), .vs(vs)
+    );
 endmodule

@@ -3,11 +3,19 @@ module CPU (
     input reset,                // 全局复位
     input [15:0] switchInput,   // 来自拨码开关的输入
     input enter,         // 模拟确认按键
+    input start_pg,     //recieve data by UART
+    input rx,           //send data by UART
 
+    output tx,
     output [7:0] tubSel,        // 数码管位选
     output [7:0] seg_led1234,       // 左侧段选
     output [7:0] seg_led5678,      // 右侧段选
-    output [15:0] dataOut
+    output [15:0] dataOut,
+    output [3:0] r,
+    output [3:0] g,
+    output [3:0] b,
+    output hs,
+    output vs
 //    output [31:0] instruction,
 //    output branch_result,
 //    output Branch,
@@ -17,14 +25,13 @@ module CPU (
 //    output [31:0] addr_out,
 //    output [31:0] Alu_result
 );
-
-
-
     wire clk_divided;
+    wire clk_out2;
 
     cpuclk clk_divider (
         .clk_in1(clk),
-        .clk_out1(clk_divided)
+        .clk_out1(clk_divided),
+        .clk_out2(clk_out2)
     );
 
     // ---------- 中间信号 ----------
@@ -49,22 +56,63 @@ module CPU (
     wire IORead, IOWrite;
     wire [3:0] ALUop;
 
-    wire [31:0] pc_current, pc;
+    wire [31:0] pc_current;
     
     wire [31:0] instruction;
+    
+    // UART 编程控制模块（IP核）
+    wire        upg_clk, upg_wen;
+    wire [14:0] upg_adr;
+    wire [31:0] upg_dat;
+    wire        upg_done;
+    
+    // BUFG 生成的同步复位信号（防止毛刺）
+    wire spg_bufg;
+    BUFG U1 (.I(start_pg), .O(spg_bufg));
+    
+    // UART reset 逻辑
+    reg upg_rst;
+    always @(posedge clk) begin
+        if (reset)          upg_rst <= 1;
+        else if (spg_bufg) upg_rst <= 0;
+    end
+    
+    uart_bmpg_0 uart_prog (
+        .upg_clk_i(clk_out2),   // 你分频后提供的10MHz时钟
+        .upg_rst_i(upg_rst),
+        .upg_rx_i(rx),
+        .upg_clk_o(upg_clk),
+        .upg_wen_o(upg_wen),
+        .upg_adr_o(upg_adr),
+        .upg_dat_o(upg_dat),
+        .upg_done_o(upg_done),
+        .upg_tx_o(tx)
+    );
+
+    
+    wire rst = reset | ~upg_rst;
+    wire kickOff = upg_rst | (~upg_rst & upg_done);
+
 
     // ---------- IF ----------
     IFetch ifetch (
         .clk(clk_divided),
-        .rst(reset),
+        .rst(rst),
         .imm32(imm32),
         .branch_result(branch_result),
         .zero(zero),
         .jal(jal),
         .jalr(jalr),
         .Alu_result(Alu_result),
+    
+        .upg_rst(upg_rst),
+        .upg_clk(upg_clk),
+        .upg_wen_o(upg_wen),
+        .upg_adr_o(upg_adr),
+        .upg_dat_o(upg_dat),
+        .upg_done_o(upg_done),
+    
         .instruction(instruction),
-        .pc(pc),
         .pc_out(pc_current)
     );
 
@@ -94,7 +142,7 @@ module CPU (
     // ---------- 寄存器与立即数 ----------
     reg_and_imm regfile (
         .clk(clk_divided),
-        .rst(reset),
+        .rst(rst),
         .inst(instruction),
         .write_data(writeback_data),
         .RegWrite(RegWrite),
@@ -128,8 +176,15 @@ module CPU (
         .m_read(MemRead),
         .m_write(MemWrite),
         .addr(addr_out),
-        .d_in(write_data),
-        .d_out(mem_rdata)
+        .d_in(r_wdata),
+        .d_out(mem_rdata),
+    
+        .upg_rst_i(upg_rst),
+        .upg_clk_i(upg_clk),
+        .upg_wen_i(upg_wen),
+        .upg_adr_i(upg_adr[13:0]),
+        .upg_dat_i(upg_dat),
+        .upg_done_i(upg_done)
     );
 
     // ---------- 内存和IO仲裁器 ----------
@@ -162,7 +217,7 @@ module CPU (
     // ---------- IO 模块实例化 ----------
     IO io_module (
         .clk(~clk_divided),
-        .rst(reset),
+        .rst(rst),
         .switchCtrl(SwitchCtrl),
         .r_wdata(r_wdata),
         .LEDCtrl(LEDCtrl),
