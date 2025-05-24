@@ -15,8 +15,7 @@ module CPU (
     output [3:0] g,
     output [3:0] b,
     output hs,
-    output vs,
-    output demo
+    output vs
 //    output [31:0] instruction,
 //    output branch_result,
 //    output Branch,
@@ -62,7 +61,7 @@ module CPU (
     wire [31:0] instruction;
     wire a7;
     
-    wire upg_clk, upg_clk_o;
+    wire upg_clk_o;
     wire upg_wen_o;      //Uart write out enable
     wire upg_done_o;     //Uart rx data have done
     //data to which  memory unit of program_rom/dmemory32 
@@ -87,7 +86,7 @@ module CPU (
     end
 
     wire rst;      
-    assign rst = fpga_rst | !upg_rst;
+    assign rst = reset | !upg_rst;
 
     uart_bmpg_0 uart_prog (
         .upg_clk_i   (upg_clk),      // 分频后的10MHz时钟
@@ -101,7 +100,7 @@ module CPU (
         .upg_tx_o    (tx)            // 串口发送引脚（可用于回显等）
     );
 
-
+    wire [31:0] pc;
     // ---------- IF ----------
     IFetch ifetch (
         .clk(clk_divided),
@@ -121,7 +120,8 @@ module CPU (
         .upg_done_o(upg_done_o),
     
         .instruction(instruction),
-        .pc_out(pc_current)
+        .pc_out(pc_current),
+        .pc_now(pc)
     );
 
     // ---------- 控制器 ----------
@@ -175,6 +175,7 @@ module CPU (
         .read_data_1(read_data_1),
         .read_data_2(read_data_2),
         .imm32(imm32),
+        .pc(pc),
         .Alu_result(Alu_result),
         .zero(zero),
         .branch_result(branch_result)
@@ -186,7 +187,7 @@ module CPU (
         .m_read(MemRead),
         .m_write(MemWrite),
         .addr(addr_out),
-        .d_in(r_wdata),
+        .d_in(write_data),
         .d_out(mem_rdata),
     
         .upg_rst_i(upg_rst),
@@ -242,5 +243,4 @@ module CPU (
         .dataOut(dataOut)
     );
 
-assign demo = start_pg;
 endmodule

@@ -17,13 +17,15 @@ module IFetch (
     input upg_done_o,
 
     output wire [31:0] instruction,
-    output reg [31:0] pc_out
+    output reg [31:0] pc_out,
+    output reg [31:0] pc_now
 );
 
     // Program Counter
     reg [31:0] pc;
     reg [31:0] next_pc;
     wire [31:0] pc_plus_4 = pc + 4;
+    wire [31:0] pc_minus_4 = pc;     
 
     // CPU 正常运行模式 or UART 编程模式
     wire kickOff = upg_rst | (~upg_rst & upg_done_o);
@@ -65,5 +67,12 @@ module IFetch (
             pc_out <= pc_plus_4;
         end
     end
-
+    
+    always @(negedge clk or negedge rst) begin
+        if (!rst) begin
+            pc_now <= 32'b0;
+        end else if (kickOff) begin
+            pc_now <= pc_minus_4;
+        end
+    end
 endmodule
