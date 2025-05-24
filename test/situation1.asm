@@ -4,7 +4,7 @@ _start:
     li s3, 0x00001000         # Stack pointer
     li t6, 0                  # Zero for comparison
     li t5, -1                 # -1 for tests               
-    li s11, 0xffffffe8       # 数码�?
+    li s11, 0xffffffe8       # 数码�?
     li s10, 0xffffffc2       # led
     sw t6, 8(s11)             # Turn off LED
 
@@ -23,7 +23,7 @@ init:
     beq a1, t6, case2
     addi a1, a1, -1
     beq a1, t6, case3
-    addi a1, a1, -1
+    addi a1, a1, 0
     beq a1, t6, case4
     addi a1, a1, -1
     beq a1, t6, case5
@@ -33,7 +33,7 @@ init:
     beq a1, t6, case7
     jal init
 
-# case0: 输入 a �? b�?
+# case0: 输入 a �? b�?
 case0:
     # Input a
     jal switchjudge
@@ -49,7 +49,7 @@ case0:
 
     jal init
 
-# case1: 输入 a 并压�?
+# case1: 输入 a 并压�?
 case1:
     jal switchjudge
     li t1, 0xfffffff5
@@ -58,7 +58,7 @@ case1:
     sw t2, 0(s3)
     jal init
 
-# case2: 输入 b 并压�?
+# case2: 输入 b 并压�?
 case2:
     jal switchjudge
     li t1, 0xfffffff9
