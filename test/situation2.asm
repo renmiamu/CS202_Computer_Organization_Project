@@ -4,13 +4,14 @@
 
 _start:
     li s3, 0x00001000                  # 初始化s3（memory??
+    li sp, 0x00002000
     li s11, 0xfffffff0
     li s10, 0xffffffc2       
     li s9,  0xffffffc4
-     li s8,  0xffffffc6
-
+    li s8,  0xffffffc6
+    sw zero, 0(s11)
 init:
-    jal switchjudge
+    jal switchjudge 
     sw zero, 0(s11)            
     sw zero 0(s10)	      # Clear LED again
     li t1, 0xfffffff7             # SWITCH_CASE_ADDR
@@ -46,9 +47,9 @@ case1: # 回文????
     jal switchjudge
     li t1, 0xfffffff9
     lw t2, 0(t1)
-    mv t3, t2
+    mv s0, t2
     jal bit_reverse
-    bne t2, t3, not_palindrome
+    bne t2, s0, not_palindrome
     li t4, 1
     sw t4, 0(s10)   #??修改为led地址
     jal init
@@ -104,20 +105,41 @@ finalize:            # ?????? 16
 done:
     jr ra
 
-
 case3:
-    jal switchjudge
+    #jal switchjudge
     lw t3, 0(s3)
     jal decode_float12
+    srli a0, a0, 4
+    beqz t0, pos_a
+    neg a0, a0
     mv s4, a0
+    
+cal_b:    
     lw t3, 4(s3)
     jal decode_float12
+    srli a0, a0, 4
+    beqz t0, pos_b
+    neg a0, a0
     add s4, s4, a0
-    srli s4, s4, 4 
+    
+    bltz s4, print_neg
     sw s4, 0(s9)
-    jal init
-
-
+    j init
+    
+pos_a:
+    mv s4, a0
+    j cal_b
+ 
+pos_b:
+    add s4, s4, a0
+    bltz s4, print_neg
+    sw s4, 0(s9)
+    j init
+print_neg:
+    neg s4, s4
+    sw s4, 0(s8)
+    j init
+    
 case4:
     jal switchjudge
     li t1, 0xfffffff9
@@ -223,8 +245,6 @@ after_jal:
 jalr_target:
     
     sw a1, 0(s11)             # 输出 a1 = 0xBEEF 到 LED 或数码管地址 4
-
-
     j init
 
 
