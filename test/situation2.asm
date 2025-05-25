@@ -12,8 +12,9 @@ _start:
     sw zero, 0(s11)
 init:
     jal switchjudge 
+
     sw zero, 0(s11)            
-    sw zero 0(s10)	      # Clear LED again
+    sw zero, 0(s10)	      # Clear LED again
     li t1, 0xfffffff7             # SWITCH_CASE_ADDR
     lw a1, 0(t1)                  # 读取测试编号
 
@@ -55,7 +56,7 @@ case1: # 回文????
     jal init
 not_palindrome:
     sw zero, 0(s10)  #??修改为led地址
-    jal init
+    j init
 
 case2:
     # 第一个浮点数输入
@@ -69,7 +70,7 @@ case2:
     srli a0, a0, 4
     beqz t0, print_pos_a 
     sw a0, 0(s8)
-	
+
            # 同步显示到数码管a
 input_b:
     # 第二个浮点数输入
@@ -83,6 +84,7 @@ input_b:
     srli a0, a0, 4
     beqz t0, print_pos_b
     sw a0, 0(s8)
+    neg a0, a0
     #beq t0,s5, print_neg_b
                  # 同步显示?? LED 或数码管b
     jal init
@@ -126,8 +128,7 @@ print_neg_b:
 print_pos_b:
     sw a0, 0(s9)
     j init
-
-
+    
 case3:
     #jal switchjudge
     lw t3, 0(s3)
@@ -246,9 +247,9 @@ case6:
 
 case7:
        # --------- JAL 测试 ---------
-       li a0, 0xDEAD 
+    li a0, 0x11111111 
     jal ra, jal_target        # 跳转到 jal_target，ra = 当前 PC + 4
-    li a0, 0x11111111         # 若跳转失败执行此行（错误路径，a0 = 错误值）
+    li a0, 0x22222222         # 若跳转失败执行此行（错误路径，a0 = 错误值）
 
     j after_jal
 
@@ -260,14 +261,13 @@ jal_target:
 after_jal:
 
     # --------- JALR 测试 ---------
-    li a1, 0xBEEF
+    li a1, 0x11111111
     la t0, jalr_target        # t0 = jalr_target 地址（若不支持 la，请手动展开）
     jalr ra, 0(t0)            # 跳转到 jalr_target
 
     li a1, 0x22222222         # 若跳转失败执行此行（错误路径）
 
 jalr_target:
-    
     sw a1, 0(s11)             # 输出 a1 = 0xBEEF 到 LED 或数码管地址 4
     j init
 
