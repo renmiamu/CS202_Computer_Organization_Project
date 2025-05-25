@@ -255,6 +255,7 @@ case7:
 jal_target:
                # 正确执行路径
     sw a0, 0(s11)             # 输出 a0 = 0xDEAD 到 LED 或数码管地址 0
+   jal switchjudge
 
 after_jal:
 
