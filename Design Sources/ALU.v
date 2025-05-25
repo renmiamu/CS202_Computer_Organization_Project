@@ -58,7 +58,7 @@ always @(*) begin
             Alu_result = (read_data_1 < read_data_2) ? 32'd1 : 32'd0;
         end
         13'b1010_0_0_0_0_0_0_0_0_0:begin       //mul
-            Alu_result = read_data_1 * read_data_2;
+            Alu_result = read_data_1 * read_data_2[31:0];
         end
         13'b1011_0_0_0_0_0_0_0_0_0:begin       //div
             Alu_result = read_data_1 / read_data_2;
