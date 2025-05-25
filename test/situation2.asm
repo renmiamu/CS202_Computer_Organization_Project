@@ -6,14 +6,14 @@ _start:
     li s3, 0x00001000                  # 初始化s3（memory??
     li sp, 0x00002000
     li s11, 0xfffffff0
-    li s10, 0xffffffc2       
+    li s10, 0xffffffc2
     li s9,  0xffffffc4
     li s8,  0xffffffc6
     sw zero, 0(s11)
 init:
-    jal switchjudge 
+    jal switchjudge
 
-    sw zero, 0(s11)            
+    sw zero, 0(s11)
     sw zero, 0(s10)	      # Clear LED again
     li t1, 0xfffffff7             # SWITCH_CASE_ADDR
     lw a1, 0(t1)                  # 读取测试编号
@@ -40,7 +40,7 @@ case0: #反转
     li t1, 0xfffffff9
     lw t2, 0(t1)
     jal bit_reverse
-    sw t2, 0(s10)        # ??修改为LED_ADDR 
+    sw t2, 0(s10)        # ??修改为LED_ADDR
     jal init
 
 
@@ -66,9 +66,9 @@ case2:
     sw t3, 0(s3)        # 存储浮点数到 memory[a]
 
     jal decode_float12
- 
+
     srli a0, a0, 4
-    beqz t0, print_pos_a 
+    beqz t0, print_pos_a
     sw a0, 0(s8)
 
            # 同步显示到数码管a
@@ -78,9 +78,9 @@ input_b:
     li t2, 0xfffffff9
     lw t3, 0(t2)
     sw t3, 4(s3)        # 存储浮点数到 memory[b]
-    
+
     jal decode_float12
-  
+
     srli a0, a0, 4
     beqz t0, print_pos_b
     sw a0, 0(s8)
@@ -113,22 +113,22 @@ done:
 
 print_neg_a:
     sw a0, 0(s8)
-    neg a0, a0 
+    neg a0, a0
     j input_b
-    
+
 print_pos_a:
     sw a0, 0(s9)
     j input_b
 
 print_neg_b:
     sw a0, 0(s8)
-    neg a0, a0 
+    neg a0, a0
     j init
-    
+
 print_pos_b:
     sw a0, 0(s9)
     j init
-    
+
 case3:
     #jal switchjudge
     lw t3, 0(s3)
@@ -137,23 +137,23 @@ case3:
     beqz t0, pos_a
     neg a0, a0
     mv s4, a0
-    
-cal_b:    
+
+cal_b:
     lw t3, 4(s3)
     jal decode_float12
     srli a0, a0, 4
     beqz t0, pos_b
     neg a0, a0
     add s4, s4, a0
-    
+
     bltz s4, print_neg
     sw s4, 0(s9)
     j init
-    
+
 pos_a:
     mv s4, a0
     j cal_b
- 
+
 pos_b:
     add s4, s4, a0
     bltz s4, print_neg
@@ -163,7 +163,7 @@ print_neg:
     neg s4, s4
     sw s4, 0(s8)
     j init
-    
+
 case4:
     jal switchjudge
     li t1, 0xfffffff9
@@ -173,7 +173,7 @@ case4:
     slli s1, s1, 4       # t3 = 原始数据 << 4 （准备拼接）
 
     jal crc4_calc        # t2 输入：原始数据，输出：CRC??
-	
+
     or t4, s1, t2        # 拼接结果
     sw t4, 0(s10)        # 输出到LED
     jal init
@@ -247,9 +247,9 @@ case6:
 
 case7:
        # --------- JAL 测试 ---------
-    li a0, 0x11111111 
+    li a0, 0x1
     jal ra, jal_target        # 跳转到 jal_target，ra = 当前 PC + 4
-    li a0, 0x22222222         # 若跳转失败执行此行（错误路径，a0 = 错误值）
+    li a0, 0xf        # 若跳转失败执行此行（错误路径，a0 = 错误值）
 
     j after_jal
 
@@ -261,11 +261,11 @@ jal_target:
 after_jal:
 
     # --------- JALR 测试 ---------
-    li a1, 0x11111111
+    li a1, 0x2
     la t0, jalr_target        # t0 = jalr_target 地址（若不支持 la，请手动展开）
     jalr ra, 0(t0)            # 跳转到 jalr_target
 
-    li a1, 0x22222222         # 若跳转失败执行此行（错误路径）
+    li a1, 0xf         # 若跳转失败执行此行（错误路径）
 
 jalr_target:
     sw a1, 0(s11)             # 输出 a1 = 0xBEEF 到 LED 或数码管地址 4
