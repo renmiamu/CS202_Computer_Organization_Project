@@ -87,6 +87,15 @@ always @(*) begin
                 10'b011_0000000:begin     //sltu
                     ALUop=4'b1001;
                 end
+                10'b000_0000001:begin     //mul
+                    ALUop=4'b1010;
+                end
+                10'b100_0000001:begin     //div
+                    ALUop=4'b1011;
+                end
+                10'b110_0000001:begin     //rem
+                    ALUop=4'b1100;
+                end
             endcase
         end
         //I-type-1

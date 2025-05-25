@@ -57,6 +57,15 @@ always @(*) begin
         13'b1001_0_0_0_0_0_0_0_0_0:begin       //sltu
             Alu_result = (read_data_1 < read_data_2) ? 32'd1 : 32'd0;
         end
+        13'b1010_0_0_0_0_0_0_0_0_0:begin       //mul
+            Alu_result = read_data_1 * read_data_2;
+        end
+        13'b1011_0_0_0_0_0_0_0_0_0:begin       //div
+            Alu_result = read_data_1 / read_data_2;
+        end
+        13'b1100_0_0_0_0_0_0_0_0_0:begin       //rem
+            Alu_result = read_data_1 % read_data_2;
+        end
         13'b0000_1_0_0_0_0_0_0_0_1:begin        //addi  load  store
             Alu_result=read_data_1+imm32;
         end
