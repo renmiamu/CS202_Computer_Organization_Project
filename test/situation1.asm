@@ -23,7 +23,7 @@ init:
     beq a1, t6, case2
     addi a1, a1, -1
     beq a1, t6, case3
-    addi a1, a1, 0
+    addi a1, a1, -1
     beq a1, t6, case4
     addi a1, a1, -1
     beq a1, t6, case5
