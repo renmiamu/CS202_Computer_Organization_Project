@@ -1,5 +1,7 @@
 `timescale 1ns / 1ps
 
+//²¿·Ö´úÂë²Î¿¼ÁËÍøÂçÊµÏÖ£º
+//https://github.com/RoderickQiu/CS202-Project
 module vga (
     input clk,
     input rst,  // active low reset
@@ -19,13 +21,13 @@ module vga (
 
     parameter up_pos_0    = 267;
     parameter down_pos_0  = 274;
-    parameter left_pos    = 400;              // ä¸ºé€‚åº”8å­—ç¬¦ç¨å¾®å·¦ç§»
-    parameter right_pos   = left_pos + 8*7-1; // 8ä¸ªå­—ç¬¦ Ã— æ¯å­—ç¬¦7åˆ— = 56åˆ—
+    parameter left_pos    = 400;              // ä¸ºé?‚åº”8å­—ç¬¦ç¨å¾®å·¦ç§»
+    parameter right_pos   = left_pos + 8*7-1; // 8ä¸ªå­—ç¬? Ã— æ¯å­—ç¬?7åˆ? = 56åˆ?
 
     wire pclk;
     reg [1:0] count;
     reg [9:0] hcount, vcount;
-    wire [7:0] p0[0:55];  // 8ä¸ªå­—ç¬¦ Ã— æ¯å­—ç¬¦7åˆ— = 56åˆ—
+    wire [7:0] p0[0:55];  // 8ä¸ªå­—ç¬? Ã— æ¯å­—ç¬?7åˆ? = 56åˆ?
 
     // Generate character columns
     vga_char_set p1 (.clk(clk), .rst(rst), .data(s1), .col0(p0[0]),  .col1(p0[1]),  .col2(p0[2]),  .col3(p0[3]),  .col4(p0[4]),  .col5(p0[5]),  .col6(p0[6]));

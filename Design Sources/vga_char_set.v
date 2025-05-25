@@ -1,5 +1,7 @@
 `timescale 1ns / 1ps
 
+//²¿·Ö´úÂë²Î¿¼ÁËÍøÂçÊµÏÖ£º
+//https://github.com/RoderickQiu/CS202-Project
 module vga_char_set (
     input clk,
     input rst,
@@ -18,7 +20,7 @@ module vga_char_set (
             col0 <= 0; col1 <= 0; col2 <= 0;
             col3 <= 0; col4 <= 0; col5 <= 0; col6 <= 0;
         end else begin
-            // é»˜è®¤æ¸…é›¶æ‰€æœ‰åˆ—ï¼Œé˜²æ­¢æ®‹å½±
+            // é»˜è®¤æ¸…é›¶æ‰?æœ‰åˆ—ï¼Œé˜²æ­¢æ®‹å½?
             col0 <= 8'b0000_0000;
             col1 <= 8'b0000_0000;
             col2 <= 8'b0000_0000;
