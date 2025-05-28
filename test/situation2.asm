@@ -3,7 +3,7 @@
 
 
 _start:
-    li s3, 0x00001000                  # 初始化s3（memory??
+    li s3, 0x00001000                  # memory
     li sp, 0x00002000
     li s11, 0xfffffff0
     li s10, 0xffffffc2
