@@ -151,7 +151,32 @@ module CPU (
 
 **IO输出接口说明**：led 0-7 号灯根据测试场景可以作为指示信号灯，若判断关系成立则亮灯，反之不亮，也可以展示二进制结果。七段数码管用来显示测试场景中输入的数字和计算后的数字。
 
-### 方案实现说明
+### 方案分析说明
+
+#### 浮点数运算在硬件与软件实现上的比较分析
+
+**硬件方案实现：**
+
+我们在 CPU 指令执行阶段中，通过对浮点数的 IEEE754 表示进行手动拆解，并实现对尾数与指数部分的移位操作，从而计算出其整数部分。该方案的优势是执行效率高，可直接在 CPU 内部进行处理，无需额外调用指令序列。此类问题在硬件电路中调试成本较高，需频繁仿真验证和波形观察。
+
+**软件方案实现：**
+
+我们通过汇编指令模拟浮点数运算。由于本项目 CPU 不直接支持浮点数指令，因此我们采用定点数表示（对二进制小数部分 ×16 放大）来近似处理浮点操作，并在数据存储中以整数方式进行计算和判断。该方案的优势在于开发灵活，调试方便，并能快速通过更新汇编代码完成功能调整。但性能方面相比硬件方案会有所降低，每一次浮点数处理需多条指令完成，且精度受限于整数模拟方法。
+
+**对比结果总结：**
+
+| 比较维度 | 硬件实现                     | 软件实现                         |
+| -------- | ---------------------------- | -------------------------------- |
+| 性能     | 快速、执行周期短             | 多指令实现，执行时间长           |
+| 精度     | 可能更高，但依赖正确逻辑设计 | 易受定点数精度影响               |
+| 实现难度 | 复杂，需理解底层电路逻辑     | 相对简单，灵活性高               |
+| 可调试性 | 需仿真+上板调试，较为困难    | 可直接观察输出结果，易修改和调试 |
+
+**最终选择说明：**
+
+在本次项目中，我们综合考虑开发进度、可靠性与调试成本，选择了**软件实现方案**的方式进行浮点数取整功能的开发。通过先在软件中模拟功能实现。
+
+
 
 ### 系统上板使用说明
 
@@ -213,3 +238,131 @@ CPU 项目的难点主要在于调试。在这个过程中，你可能需要编�
 当我们确认仿真没有问题后，还需要花费较长时间等待比特流文件的生成。如果上板测试仍然出错，就只能重新开始整个流程。总之，整个调试过程复杂而漫长，不建议未来的小组把这个项目留到最后几天再完成，否则很可能会因为问题难以定位而彻夜奋战仍无结果。
 
 当然也正因如此，这个项目仍然让我们深入理解并掌握了单周期 CPU 的实现逻辑，收获颇丰。
+
+### Bonus 对应功能点的设计说明
+
+#### 1. 实现扩展指令
+
+##### lui的实现
+
+将立即数左移12位，然后存入rd寄存器，在我们的测试样例中，我们将0x12345，通过lui命令导入寄存器，然后通过sw命令展示在数码管上。
+
+其中的核心代码如下：
+
+```
+case6:
+    lui t1, 0x12345      # t0 = 0x12345000
+    sw t1, 0(s11)        # 输出高位
+    jal init
+```
+
+该指令在测试场景2-6中得到测试。
+
+##### auipc的实现
+
+将PC左移12位，然后存入rd寄存器，在我们的测试样例中，我们将jalr_target地址，通过auipc命令+addi命令导入寄存器，然后通过jalr命令进行跳转。
+
+其中的核心代码如下：
+
+```
+after_jal:
+    li a1, 0x2
+    la t0, jalr_target        # t0 = jalr_target 地址
+    jalr ra, 0(t0)            # 跳转到 jalr_target
+
+    li a1, 0xf         # 若跳转失败执行此行（错误路径）
+
+jalr_target:
+    sw a1, 0(s11)             # 输出 a1 = 0x2 到 LED 或数码管地址 
+    j init
+```
+
+该指令在测试场景2-7中得到测试。
+
+#### 2. uart实现
+
+##### 设计思路
+
+实现 可复用的 UART 程序加载机制：用户只需烧写一次比特流，之后可通过串口动态将不同的 `.inst` 和 `.mem` 文件加载进指令和数据存储模块，灵活切换多个测试场景。
+
+##### 核心配置与代码说明
+
+##### 1. UART IP核添加与配置
+
+- 使用 Vivado IP Catalog 中 `uart_bmpg_v1_3`
+- 设置：10MHz 输入时钟、128000 baud、8位数据、1个停止位
+
+##### 2. 新建专用 UART 时钟
+
+- `cpuclk` IP 核中添加新输出 `clk_out2`，频率为 `10 MHz`，用于 UART 通信（图2）
+- 由该时钟驱动 UART 模块，使之独立于 CPU 主时钟运行
+
+##### 3. `CPU_TOP` 顶层接口与控制逻辑
+
+- 增加 UART 输入/输出端口：`start_pg`, `rx`, `tx`
+- 增加状态管理寄存器 `upg_rst`，通过 `fpga_rst` 与 `start_pg` 控制进入 UART 加载状态（图3-4）
+- 定义 `kickOff = upg_rst_i | (~upg_rst_i & upg_done_i)`
+  - `kickOff=0`：UART加载状态；
+  - `kickOff=1`：正常运行状态
+
+```
+  wire upg_clk_o;
+    wire upg_wen_o;      //Uart write out enable
+    wire upg_done_o;     //Uart rx data have done
+    //data to which  memory unit of program_rom/dmemory32 
+    wire [14:0] upg_adr_o;     
+    //data to program_rom or dmemory32 
+    wire [31:0] upg_dat_o; 
+
+    wire spg_bufg;
+        
+    // de-twitter
+    BUFG U1 (.I(start_pg), .O(spg_bufg));
+    
+    reg upg_rst;
+    // UART编程复位信号
+    always @(posedge clk) begin
+        if (spg_bufg) begin
+            upg_rst <= 0;           // UART编程复位信号
+        end
+        else begin
+            upg_rst <= 1;           // UART编程复位信号
+        end
+    end
+
+    wire rst;      
+    assign rst = reset | !upg_rst;
+
+    uart_bmpg_0 uart_prog (
+        .upg_clk_i   (upg_clk),      // 分频后的10MHz时钟
+        .upg_rst_i   (upg_rst),      // UART复位信号（由 start_pg 生成）
+        .upg_rx_i    (rx),           // 串口接收引脚
+        .upg_clk_o   (upg_clk_o),    // 输出给其他模块（如 RAM）
+        .upg_wen_o   (upg_wen_o),    // 写使能
+        .upg_adr_o   (upg_adr_o),    // 写地址（高位用于区分 program/data）
+        .upg_dat_o   (upg_dat_o),    // 写数据
+        .upg_done_o  (upg_done_o),   // 写入完成标志
+        .upg_tx_o    (tx)            // 串口发送引脚（可用于回显等）
+    );
+```
+
+
+
+##### 4. 存储模块适配（ROM / RAM）
+
+- `dmemory32` 和 `programrom` 均支持双输入来源（图5-6）：
+  - 正常工作模式下使用 `cpu_clk` 和 `CPU` 的访问信号；
+  - UART 模式下使用 `uart_clk` 和 `uart_bmpg` 的地址/数据线。
+- 通过 `kickOff` 信号选择数据来源
+
+```
+
+    wire kickOff = upg_rst_i | (~upg_rst_i & upg_done_i);
+    
+    wire [13:0] ram_addr = kickOff ? addr[15:2] : upg_adr_i;
+        
+    wire [31:0] ram_data = kickOff ? d_in        : upg_dat_i;
+    // 时钟、写使能、地址、写数据，按模式多路选择
+    wire ram_we   = kickOff ? m_write     : upg_wen_i;
+```
+
