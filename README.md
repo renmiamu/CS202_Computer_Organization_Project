@@ -139,9 +139,178 @@ module CPU (
     output [7:0] tubSel,        // 数码管位选
     output [7:0] seg_led1234,       // 左侧段选
     output [7:0] seg_led5678,      // 右侧段选
-    output [15:0] dataOut
+    output [15:0] dataOut,
 );
 ```
+
+##### **cpuclk 模块**
+
+| 接口名   | 方向   | 位宽 | 说明                          |
+| -------- | ------ | ---- | ----------------------------- |
+| clk_in1  | input  | 1    | 输入主时钟                    |
+| clk_out1 | output | 1    | 分频时钟输出1（用于CPU逻辑）  |
+| clk_out2 | output | 1    | 分频时钟输出2（用于UART编程） |
+
+##### **uart_bmpg_0 模块（uart）**
+
+| 接口名     | 方向   | 位宽 | 说明             |
+| ---------- | ------ | ---- | ---------------- |
+| upg_clk_i  | input  | 1    | UART编程时钟输入 |
+| upg_rst_i  | input  | 1    | UART复位         |
+| upg_rx_i   | input  | 1    | UART RX输入      |
+| upg_clk_o  | output | 1    | UART输出时钟     |
+| upg_wen_o  | output | 1    | 写使能           |
+| upg_adr_o  | output | 15   | 写地址           |
+| upg_dat_o  | output | 32   | 写数据           |
+| upg_done_o | output | 1    | 写完成标志       |
+| upg_tx_o   | output | 1    | UART TX输出      |
+
+##### **IFetch 模块**
+
+| 接口名        | 方向   | 位宽 | 说明              |
+| ------------- | ------ | ---- | ----------------- |
+| clk           | input  | 1    | CPU时钟           |
+| rst           | input  | 1    | 复位              |
+| imm32         | input  | 32   | 立即数            |
+| branch_result | input  | 1    | 跳转判断结果      |
+| zero          | input  | 1    | ALU零标志         |
+| jal           | input  | 1    | 跳转指令          |
+| jalr          | input  | 1    | 寄存器跳转指令    |
+| Alu_result    | input  | 32   | 来自ALU的地址结果 |
+| upg_rst       | input  | 1    | UART复位          |
+| upg_clk       | input  | 1    | UART时钟          |
+| upg_wen_o     | input  | 1    | UART写使能        |
+| upg_adr_o     | input  | 15   | UART写地址        |
+| upg_dat_o     | input  | 32   | UART写数据        |
+| upg_done_o    | input  | 1    | UART写完成        |
+| instruction   | output | 32   | 取出的指令        |
+| pc_out        | output | 32   | 下一个PC地址      |
+| pc_now        | output | 32   | 当前PC地址        |
+
+##### **instruction_control 模块**
+
+| 接口名       | 方向   | 位宽 | 说明           |
+| ------------ | ------ | ---- | -------------- |
+| instruction  | input  | 32   | 指令           |
+| Alu_result   | input  | 32   | ALU 结果       |
+| a7           | output | 1    | 系统调用标识位 |
+| nBranch      | output | 1    | 非条件分支     |
+| Branch       | output | 1    | 条件分支       |
+| branch_lt    | output | 1    | 小于分支       |
+| branch_ge    | output | 1    | 大于等于分支   |
+| branch_ltu   | output | 1    | 无符号小于分支 |
+| branch_geu   | output | 1    | 无符号大于等于 |
+| jal          | output | 1    | 无条件跳转     |
+| jalr         | output | 1    | 寄存器跳转     |
+| MemRead      | output | 1    | 读存储器       |
+| MemorIOToReg | output | 1    | 存储器/IO选择  |
+| ALUop        | output | 4    | ALU 操作码     |
+| MemWrite     | output | 1    | 写存储器       |
+| ALUSrc       | output | 1    | ALU源选择      |
+| RegWrite     | output | 1    | 写寄存器       |
+| sftmd        | output | 1    | 移位操作使能   |
+| IORead       | output | 1    | IO读           |
+| IOWrite      | output | 1    | IO写           |
+
+##### **reg_and_imm 模块**
+
+| 接口名      | 方向   | 位宽 | 说明           |
+| ----------- | ------ | ---- | -------------- |
+| clk         | input  | 1    | 时钟           |
+| rst         | input  | 1    | 复位           |
+| inst        | input  | 32   | 指令           |
+| write_data  | input  | 32   | 写入寄存器数据 |
+| RegWrite    | input  | 1    | 写使能         |
+| read_data_1 | output | 32   | 源寄存器1数据  |
+| read_data_2 | output | 32   | 源寄存器2数据  |
+| imm32       | output | 32   | 立即数         |
+| a7          | output | 1    | 系统调用标识位 |
+
+##### **ALU 模块**
+
+| 接口名        | 方向   | 位宽 | 说明             |
+| ------------- | ------ | ---- | ---------------- |
+| ALUop         | input  | 4    | ALU操作码        |
+| ALUSrc        | input  | 1    | ALU源选择        |
+| sftmd         | input  | 1    | 是否为移位操作   |
+| Branch        | input  | 1    | 分支控制信号     |
+| nBranch       | input  | 1    | 非条件分支       |
+| Branch_lt     | input  | 1    | 小于分支判断     |
+| Branch_ge     | input  | 1    | 大于等于分支判断 |
+| Branch_ltu    | input  | 1    | 无符号小于判断   |
+| Branch_geu    | input  | 1    | 无符号大于等于   |
+| read_data_1   | input  | 32   | 操作数1          |
+| read_data_2   | input  | 32   | 操作数2          |
+| imm32         | input  | 32   | 立即数           |
+| pc            | input  | 32   | 当前指令地址     |
+| Alu_result    | output | 32   | ALU输出          |
+| zero          | output | 1    | 零标志           |
+| branch_result | output | 1    | 分支结果         |
+
+##### **Data_mem 模块**
+
+| 接口名     | 方向   | 位宽 | 说明                 |
+| ---------- | ------ | ---- | -------------------- |
+| clk        | input  | 1    | 时钟                 |
+| m_read     | input  | 1    | 读使能               |
+| m_write    | input  | 1    | 写使能               |
+| addr       | input  | 32   | 地址                 |
+| d_in       | input  | 32   | 写入数据             |
+| d_out      | output | 32   | 读取数据             |
+| upg_rst_i  | input  | 1    | UART复位             |
+| upg_clk_i  | input  | 1    | UART时钟             |
+| upg_wen_i  | input  | 1    | UART写使能           |
+| upg_adr_i  | input  | 14   | UART写地址（低14位） |
+| upg_dat_i  | input  | 32   | UART写数据           |
+| upg_done_i | input  | 1    | UART写完成标志       |
+
+##### **MemOrIO 模块**
+
+| 接口名     | 方向   | 位宽 | 说明             |
+| ---------- | ------ | ---- | ---------------- |
+| mRead      | input  | 1    | 内存读           |
+| mWrite     | input  | 1    | 内存写           |
+| ioRead     | input  | 1    | IO读             |
+| ioWrite    | input  | 1    | IO写             |
+| addr_in    | input  | 32   | ALU输出地址      |
+| addr_out   | output | 32   | 仲裁后的输出地址 |
+| m_rdata    | input  | 32   | 内存读数据       |
+| io_rdata   | input  | 16   | IO读数据         |
+| r_wdata    | output | 32   | 写入数据         |
+| r_rdata    | input  | 32   | 寄存器读数据     |
+| write_data | output | 32   | 最终写入总线数据 |
+| LEDCtrl    | output | 1    | 控制LED          |
+| SwitchCtrl | output | 1    | 控制开关输入     |
+
+##### **writeback_mux 模块**
+
+| 接口名         | 方向   | 位宽 | 说明             |
+| -------------- | ------ | ---- | ---------------- |
+| MemorIOToReg   | input  | 1    | 写回源选择信号   |
+| Alu_result     | input  | 32   | ALU计算结果      |
+| r_wdata        | input  | 32   | 数据读取结果     |
+| pc_out         | input  | 32   | 跳转指令返回地址 |
+| jal            | input  | 1    | 是否为跳转指令   |
+| writeback_data | output | 32   | 写回寄存器的数据 |
+
+##### **IO 模块**
+
+| 接口名       | 方向   | 位宽 | 说明           |
+| ------------ | ------ | ---- | -------------- |
+| clk          | input  | 1    | 时钟           |
+| rst          | input  | 1    | 复位           |
+| switchCtrl   | input  | 1    | 开关控制信号   |
+| r_wdata      | input  | 32   | 写入IO的数据   |
+| LEDCtrl      | input  | 1    | 控制LED信号    |
+| switchInput  | input  | 16   | 开关输入值     |
+| address      | input  | 32   | 地址           |
+| confirmation | input  | 1    | 确认按键信号   |
+| writeData    | input  | 32   | 外设写入数据   |
+| dataIOInput  | output | 16   | 外设读出数据   |
+| tubSel       | output | 8    | 数码管位选     |
+| tubLeft      | output | 8    | 数码管左段选   |
+| tubRight     | output | 8    | 数码管右段选   |
+| dataOut      | output | 16   | IO结果数据输出 |
 
 **时钟信号说明：**在本 CPU 中使用到了开发板提供的 100MHz 时钟 `Y18` ，通过 IP 核分别转化成为了 10kHz（供cpu 使用）、10MHz（供uart使用)
 
